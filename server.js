@@ -60,22 +60,22 @@ const onlineUsers = new Set(); // userIds en línea
 // Manejar conexiones WebSocket
 wss.on('connection', (ws, req) => {
   console.log('🔗 Nueva conexión WebSocket');
-  
+
   let userId = null;
   let username = null;
-  
+
   // Heartbeat
   const heartbeatInterval = setInterval(() => {
     if (ws.readyState === WebSocket.OPEN) {
       ws.send(JSON.stringify({ type: 'HEARTBEAT', timestamp: Date.now() }));
     }
   }, 30000);
-  
+
   // Manejar mensajes
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
-      
+
       switch(data.type) {
         case 'AUTH':
           if (data.token) {
@@ -85,49 +85,49 @@ wss.on('connection', (ws, req) => {
                 ws.close();
                 return;
               }
-              
+
               userId = user.id;
               username = user.username;
-              
+
               activeConnections.set(userId, ws);
               onlineUsers.add(userId);
-              
+
               // Notificar a todos sobre nuevo usuario en línea
               broadcastOnlineCount();
-              
+
               ws.send(JSON.stringify({ 
                 type: 'AUTH_SUCCESS', 
                 user: user 
               }));
-              
+
               console.log(`✅ Usuario autenticado: ${username} (${userId})`);
             });
           }
           break;
-          
+
         case 'MESSAGE':
-          if (userId && data.content) {
+          if (userId && (data.content || data.media_type)) {
             const messageData = {
               type: 'NEW_MESSAGE',
               message: {
                 id: Date.now() + Math.random(),
                 user_id: userId,
                 username: username,
-                content: data.content,
+                content: data.content || '',
                 media_type: data.media_type,
                 media_url: data.media_url,
                 created_at: new Date().toISOString()
               }
             };
-            
+
             // Guardar mensaje en DB
             saveChatMessage(messageData.message);
-            
+
             // Broadcast a todos los usuarios
             broadcastToAll(messageData);
           }
           break;
-          
+
         case 'TYPING':
           if (userId && username) {
             const typingData = {
@@ -136,31 +136,31 @@ wss.on('connection', (ws, req) => {
               username: username,
               action: data.action || 'typing'
             };
-            
+
             // Enviar a todos excepto al que está escribiendo
             broadcastToOthers(userId, typingData);
           }
           break;
-          
+
         case 'STOPPED_TYPING':
           if (userId) {
             const stoppedTypingData = {
               type: 'USER_STOPPED_TYPING',
               userId: userId
             };
-            
+
             // Enviar a todos excepto al que dejó de escribir
             broadcastToOthers(userId, stoppedTypingData);
           }
           break;
-          
+
         case 'GET_ONLINE_COUNT':
           ws.send(JSON.stringify({
             type: 'ONLINE_COUNT',
             count: onlineUsers.size
           }));
           break;
-          
+
         case 'GET_RECENT_MESSAGES':
           getRecentMessages(ws);
           break;
@@ -169,22 +169,22 @@ wss.on('connection', (ws, req) => {
       console.error('❌ Error procesando mensaje WebSocket:', error);
     }
   });
-  
+
   // Manejar cierre
   ws.on('close', () => {
     clearInterval(heartbeatInterval);
-    
+
     if (userId) {
       activeConnections.delete(userId);
       onlineUsers.delete(userId);
-      
+
       // Notificar a todos sobre usuario desconectado
       broadcastOnlineCount();
-      
+
       console.log(`👋 Usuario desconectado: ${username} (${userId})`);
     }
   });
-  
+
   ws.on('error', (error) => {
     console.error('❌ Error en WebSocket:', error);
   });
@@ -214,7 +214,7 @@ function broadcastOnlineCount() {
     type: 'ONLINE_COUNT',
     count: onlineUsers.size
   };
-  
+
   broadcastToAll(countData);
 }
 
@@ -248,41 +248,15 @@ function initializeDatabase() {
     db.run(`CREATE TABLE IF NOT EXISTS videos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
-      description TEXT,
       filename TEXT NOT NULL,
       video_path TEXT NOT NULL,
       thumbnail_path TEXT,
-      category TEXT DEFAULT 'general',
       user_id INTEGER NOT NULL,
       user_name TEXT NOT NULL,
       views INTEGER DEFAULT 0,
       duration INTEGER DEFAULT 0,
       size INTEGER,
-      likes INTEGER DEFAULT 0,
-      dislikes INTEGER DEFAULT 0,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-
-    // Tabla de comentarios de videos
-    db.run(`CREATE TABLE IF NOT EXISTS video_comments (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      video_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      user_name TEXT NOT NULL,
-      comment TEXT NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (video_id) REFERENCES videos (id)
-    )`);
-
-    // Tabla de reacciones a videos
-    db.run(`CREATE TABLE IF NOT EXISTS video_reactions (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      video_id INTEGER NOT NULL,
-      user_id INTEGER NOT NULL,
-      reaction TEXT CHECK(reaction IN ('like', 'dislike')) NOT NULL,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      UNIQUE(video_id, user_id),
-      FOREIGN KEY (video_id) REFERENCES videos (id)
     )`);
 
     // Tabla de mensajes de chat
@@ -297,17 +271,16 @@ function initializeDatabase() {
     )`);
 
     // Índices
-    db.run('CREATE INDEX IF NOT EXISTS idx_videos_category ON videos(category)');
     db.run('CREATE INDEX IF NOT EXISTS idx_videos_user ON videos(user_id)');
     db.run('CREATE INDEX IF NOT EXISTS idx_chat_messages_time ON chat_messages(created_at)');
 
     // Usuario demo
-    const demoPassword = 'demo123';
+    const demoPassword = 'demo';
     bcrypt.hash(demoPassword, 10, (err, hash) => {
       if (!err) {
         db.run(
           `INSERT OR IGNORE INTO users (username, password, name, email) VALUES (?, ?, ?, ?)`,
-          ['demo', hash, 'Usuario Demo', 'demo@cpvideos.com']
+          ['demo', hash, 'Usuario Demo', '']
         );
       }
     });
@@ -352,7 +325,7 @@ function extractThumbnailAndDuration(videoPath, thumbnailPath) {
     ffprobe.on('close', (code) => {
       if (code === 0) {
         duration = Math.round(parseFloat(durationOutput));
-        
+
         const ffmpeg = spawn('ffmpeg', [
           '-i', videoPath,
           '-ss', '00:00:01',
@@ -451,11 +424,11 @@ app.use('/thumbnails', express.static(THUMBNAILS_DIR));
 function buildFullUrl(path) {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    
+
     const BASE_URL = isProduction 
         ? 'https://cpvideos.onrender.com' 
         : `http://localhost:${PORT}`;
-    
+
     return path.startsWith('/') ? `${BASE_URL}${path}` : `${BASE_URL}/${path}`;
 }
 
@@ -475,7 +448,7 @@ app.post('/api/login', (req, res) => {
       if (!result) return res.status(401).json({ error: 'Contraseña incorrecta' });
 
       delete user.password;
-      
+
       const token = jwt.sign({ 
         id: user.id, 
         username: user.username,
@@ -493,10 +466,10 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post('/api/register', (req, res) => {
-  const { username, password, name, email } = req.body;
+  const { username, password, name } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
+    return res.status(400).json({ error: 'Nombre y contraseña requeridos' });
   }
 
   bcrypt.hash(password, 10, (err, hash) => {
@@ -504,7 +477,7 @@ app.post('/api/register', (req, res) => {
 
     db.run(
       `INSERT INTO users (username, password, name, email) VALUES (?, ?, ?, ?)`,
-      [username, hash, name || username, email || ''],
+      [username, hash, name || username, ''],
       function(err) {
         if (err) {
           if (err.message.includes('UNIQUE constraint failed')) {
@@ -564,7 +537,6 @@ app.post('/api/videos/upload', authenticateToken, uploadVideo.single('video'), a
     });
   }
 
-  const { title, description, category } = req.body;
   const userId = req.user.id;
   const userName = req.user.name || req.user.username;
 
@@ -579,15 +551,13 @@ app.post('/api/videos/upload', authenticateToken, uploadVideo.single('video'), a
     const { duration } = await extractThumbnailAndDuration(videoFullPath, thumbnailPath);
 
     db.run(
-      `INSERT INTO videos (title, description, filename, video_path, thumbnail_path, category, user_id, user_name, size, duration) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO videos (title, filename, video_path, thumbnail_path, user_id, user_name, size, duration) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        title || req.file.originalname.replace(/\.[^/.]+$/, ""),
-        description || '',
+        req.file.originalname.replace(/\.[^/.]+$/, ""),
         videoFilename,
         videoPath,
         thumbnailWebPath,
-        category || 'general',
         userId,
         userName,
         req.file.size,
@@ -633,17 +603,15 @@ app.post('/api/videos/upload', authenticateToken, uploadVideo.single('video'), a
     );
   } catch (error) {
     console.error('Error procesando video:', error);
-    
+
     // Subir sin miniatura
     db.run(
-      `INSERT INTO videos (title, description, filename, video_path, category, user_id, user_name, size) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO videos (title, filename, video_path, user_id, user_name, size) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
-        title || req.file.originalname.replace(/\.[^/.]+$/, ""),
-        description || '',
+        req.file.originalname.replace(/\.[^/.]+$/, ""),
         videoFilename,
         videoPath,
-        category || 'general',
         userId,
         userName,
         req.file.size
@@ -668,23 +636,18 @@ app.post('/api/videos/upload', authenticateToken, uploadVideo.single('video'), a
 
 // 2. OBTENER TODOS LOS VIDEOS
 app.get('/api/videos', (req, res) => {
-  const { category, limit, offset } = req.query;
-  
+  const { limit, offset } = req.query;
+
   let query = 'SELECT * FROM videos WHERE 1=1';
   const params = [];
-  
-  if (category && category !== 'all') {
-    query += ' AND category = ?';
-    params.push(category);
-  }
-  
+
   query += ' ORDER BY created_at DESC';
-  
+
   if (limit) {
     query += ' LIMIT ?';
     params.push(parseInt(limit));
   }
-  
+
   if (offset) {
     query += ' OFFSET ?';
     params.push(parseInt(offset));
@@ -728,50 +691,7 @@ app.get('/api/videos/:id', (req, res) => {
   });
 });
 
-// 4. DETALLES DE VÍDEO CON COMENTARIOS
-app.get('/api/videos/details/:videoId', authenticateToken, (req, res) => {
-  const { videoId } = req.params;
-  const userId = req.user.id;
-
-  db.get(
-    `SELECT * FROM videos WHERE id = ?`,
-    [videoId],
-    (err, video) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (!video) return res.status(404).json({ error: 'Video no encontrado' });
-
-      db.get(
-        `SELECT reaction FROM video_reactions WHERE video_id = ? AND user_id = ?`,
-        [videoId, userId],
-        (err, userReaction) => {
-          db.all(
-            `SELECT c.*, u.username, u.name 
-             FROM video_comments c 
-             LEFT JOIN users u ON c.user_id = u.id 
-             WHERE c.video_id = ? 
-             ORDER BY c.created_at DESC`,
-            [videoId],
-            (err, comments) => {
-              if (err) return res.status(500).json({ error: err.message });
-
-              video.video_url = buildFullUrl(video.video_path);
-              video.thumbnail_url = video.thumbnail_path ? buildFullUrl(video.thumbnail_path) : null;
-
-              res.json({ 
-                success: true, 
-                video: video,
-                userReaction: userReaction ? userReaction.reaction : null,
-                comments: comments
-              });
-            }
-          );
-        }
-      );
-    }
-  );
-});
-
-// 5. INCREMENTAR VISTAS
+// 4. INCREMENTAR VISTAS
 app.post('/api/videos/:videoId/view', (req, res) => {
   const { videoId } = req.params;
 
@@ -798,166 +718,7 @@ app.post('/api/videos/:videoId/view', (req, res) => {
   );
 });
 
-// 6. AGREGAR COMENTARIO
-app.post('/api/videos/:videoId/comment', authenticateToken, (req, res) => {
-  const { videoId } = req.params;
-  const { comment } = req.body;
-  const userId = req.user.id;
-  const userName = req.user.name || req.user.username;
-
-  if (!comment) {
-    return res.status(400).json({ error: 'Comentario requerido' });
-  }
-
-  db.run(
-    `INSERT INTO video_comments (video_id, user_id, user_name, comment) VALUES (?, ?, ?, ?)`,
-    [videoId, userId, userName, comment],
-    function(err) {
-      if (err) return res.status(500).json({ error: err.message });
-
-      db.get(
-        `SELECT c.*, u.username, u.name 
-         FROM video_comments c 
-         LEFT JOIN users u ON c.user_id = u.id 
-         WHERE c.id = ?`,
-        [this.lastID],
-        (err, newComment) => {
-          if (err) return res.status(500).json({ error: err.message });
-
-          // Notificar vía WebSocket
-          const wsMessage = {
-            type: 'NEW_COMMENT',
-            videoId: parseInt(videoId),
-            comment: newComment
-          };
-          broadcastToAll(wsMessage);
-
-          res.json({ 
-            success: true, 
-            comment: newComment 
-          });
-        }
-      );
-    }
-  );
-});
-
-// 7. REACCIÓN A VÍDEO
-app.post('/api/videos/:videoId/reaction', authenticateToken, (req, res) => {
-  const { videoId } = req.params;
-  const { reaction } = req.body;
-  const userId = req.user.id;
-
-  if (!['like', 'dislike'].includes(reaction)) {
-    return res.status(400).json({ error: 'Reacción no válida' });
-  }
-
-  db.get(
-    `SELECT reaction FROM video_reactions WHERE video_id = ? AND user_id = ?`,
-    [videoId, userId],
-    (err, existing) => {
-      if (err) return res.status(500).json({ error: err.message });
-
-      if (existing) {
-        if (existing.reaction === reaction) {
-          // Eliminar reacción
-          db.run(
-            `DELETE FROM video_reactions WHERE video_id = ? AND user_id = ?`,
-            [videoId, userId],
-            function(err) {
-              if (err) return res.status(500).json({ error: err.message });
-
-              const updateField = reaction === 'like' ? 'likes = likes - 1' : 'dislikes = dislikes - 1';
-              updateVideoReaction(videoId, updateField, null, res);
-            }
-          );
-        } else {
-          // Cambiar reacción
-          db.run(
-            `UPDATE video_reactions SET reaction = ? WHERE video_id = ? AND user_id = ?`,
-            [reaction, videoId, userId],
-            function(err) {
-              if (err) return res.status(500).json({ error: err.message });
-
-              const oldUpdate = existing.reaction === 'like' ? 'likes = likes - 1' : 'dislikes = dislikes - 1';
-              const newUpdate = reaction === 'like' ? 'likes = likes + 1' : 'dislikes = dislikes + 1';
-              
-              db.run(
-                `UPDATE videos SET ${oldUpdate}, ${newUpdate} WHERE id = ?`,
-                [videoId],
-                (err) => {
-                  if (err) return res.status(500).json({ error: err.message });
-                  
-                  db.get('SELECT likes, dislikes FROM videos WHERE id = ?', [videoId], (err, video) => {
-                    if (!err && video) {
-                      // Notificar vía WebSocket
-                      const wsMessage = {
-                        type: 'VIDEO_LIKE_UPDATE',
-                        videoId: parseInt(videoId),
-                        likes: video.likes,
-                        dislikes: video.dislikes
-                      };
-                      broadcastToAll(wsMessage);
-                    }
-                  });
-                }
-              );
-
-              res.json({ 
-                success: true, 
-                reaction: reaction,
-                message: 'Reacción cambiada'
-              });
-            }
-          );
-        }
-      } else {
-        // Nueva reacción
-        db.run(
-          `INSERT INTO video_reactions (video_id, user_id, reaction) VALUES (?, ?, ?)`,
-          [videoId, userId, reaction],
-          function(err) {
-            if (err) return res.status(500).json({ error: err.message });
-
-            const updateField = reaction === 'like' ? 'likes = likes + 1' : 'dislikes = dislikes + 1';
-            updateVideoReaction(videoId, updateField, reaction, res);
-          }
-        );
-      }
-    }
-  );
-});
-
-function updateVideoReaction(videoId, updateField, reaction, res) {
-  db.run(
-    `UPDATE videos SET ${updateField} WHERE id = ?`,
-    [videoId],
-    (err) => {
-      if (err) return res.status(500).json({ error: err.message });
-      
-      db.get('SELECT likes, dislikes FROM videos WHERE id = ?', [videoId], (err, video) => {
-        if (!err && video) {
-          // Notificar vía WebSocket
-          const wsMessage = {
-            type: 'VIDEO_LIKE_UPDATE',
-            videoId: parseInt(videoId),
-            likes: video.likes,
-            dislikes: video.dislikes
-          };
-          broadcastToAll(wsMessage);
-        }
-      });
-
-      res.json({ 
-        success: true, 
-        reaction: reaction,
-        message: reaction ? 'Reacción añadida' : 'Reacción eliminada'
-      });
-    }
-  );
-}
-
-// 8. ELIMINAR VÍDEO
+// 5. ELIMINAR VÍDEO
 app.delete('/api/videos/:videoId', authenticateToken, (req, res) => {
   const { videoId } = req.params;
   const userId = req.user.id;
@@ -988,9 +749,6 @@ app.delete('/api/videos/:videoId', authenticateToken, (req, res) => {
         userId: userId
       };
       broadcastToAll(wsMessage);
-
-      db.run('DELETE FROM video_reactions WHERE video_id = ?', [videoId]);
-      db.run('DELETE FROM video_comments WHERE video_id = ?', [videoId]);
 
       res.json({ 
         success: true, 
@@ -1029,7 +787,7 @@ function getRecentMessages(ws) {
   db.all(
     `SELECT * FROM chat_messages 
      ORDER BY created_at DESC 
-     LIMIT 50`,
+     LIMIT 100`,
     [],
     (err, messages) => {
       if (!err && messages) {
