@@ -86,10 +86,19 @@
             border-radius: 4px;
             transition: background 0.2s;
             position: relative;
+            flex-direction: column;
+            gap: 2px;
         }
         
         .header-btn:hover {
             background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-label {
+            font-size: 9px;
+            color: var(--text-gray);
+            font-weight: 500;
+            letter-spacing: 0.3px;
         }
         
         .unread-badge {
@@ -144,21 +153,21 @@
         }
         
         .home-content {
-            padding: 15px;
+            padding: 12px;
             max-width: 1400px;
             margin: 0 auto;
         }
         
         .videos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 16px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
         }
         
         .video-card {
             background: var(--medium-black);
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
             cursor: pointer;
             transition: all 0.3s;
@@ -166,13 +175,13 @@
         }
         
         .video-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(229, 9, 20, 0.15);
         }
         
         .video-thumbnail {
             width: 100%;
-            height: 140px;
+            height: 100px;
             background: var(--light-black);
             position: relative;
             overflow: hidden;
@@ -191,8 +200,8 @@
         
         .video-duration {
             position: absolute;
-            bottom: 6px;
-            right: 6px;
+            bottom: 4px;
+            right: 4px;
             background: rgba(0, 0, 0, 0.85);
             color: white;
             padding: 2px 6px;
@@ -202,32 +211,24 @@
         }
         
         .video-info {
-            padding: 10px;
+            padding: 8px;
         }
         
         .video-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             line-height: 1.3;
-            margin-bottom: 6px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
         
-        .video-author {
-            color: var(--text-gray);
-            font-size: 11px;
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        
-        .video-author:hover {
-            color: var(--primary-red);
-        }
-        
         /* PÁGINA DE SUBIR VÍDEO */
+        #uploadPage {
+            padding-top: 0;
+        }
+        
         #uploadPage .page-header {
             position: sticky;
             top: 0;
@@ -239,7 +240,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
-            justify-content: space-between;
             padding: 0 16px;
             z-index: 50;
         }
@@ -267,34 +267,36 @@
             font-size: 18px;
             font-weight: 600;
             color: var(--text-white);
+            flex: 1;
+            text-align: center;
         }
         
         .page-content {
             padding: 20px;
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             width: 100%;
         }
         
         .upload-container {
             background: var(--medium-black);
-            border-radius: 12px;
-            padding: 40px;
+            border-radius: 10px;
+            padding: 30px;
         }
         
         .upload-title {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             text-align: center;
         }
         
         .upload-area {
-            border: 3px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 60px 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 40px 20px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             cursor: pointer;
             transition: all 0.3s;
             position: relative;
@@ -307,32 +309,32 @@
         }
         
         .upload-area i {
-            font-size: 56px;
+            font-size: 48px;
             color: var(--primary-red);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .upload-area h3 {
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 16px;
+            margin-bottom: 8px;
         }
         
         .upload-area p {
             color: var(--text-gray);
-            font-size: 14px;
-            line-height: 1.5;
+            font-size: 13px;
+            line-height: 1.4;
         }
         
         .upload-file-list {
-            margin-top: 20px;
+            margin-top: 15px;
             display: none;
         }
         
         .upload-file-item {
             background: var(--light-black);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -347,12 +349,12 @@
             flex: 1;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
         
         .file-icon {
             color: var(--primary-red);
-            font-size: 24px;
+            font-size: 20px;
         }
         
         .file-details {
@@ -361,13 +363,13 @@
         
         .file-name {
             font-weight: 500;
-            font-size: 14px;
-            margin-bottom: 4px;
+            font-size: 13px;
+            margin-bottom: 3px;
         }
         
         .file-size {
             color: var(--text-gray);
-            font-size: 12px;
+            font-size: 11px;
         }
         
         .file-remove {
@@ -375,7 +377,7 @@
             border: none;
             color: #ef4444;
             cursor: pointer;
-            padding: 8px;
+            padding: 6px;
             border-radius: 4px;
             transition: background 0.2s;
         }
@@ -386,26 +388,26 @@
         
         .progress-container {
             width: 100%;
-            margin: 30px 0;
+            margin: 20px 0;
             display: none;
         }
         
         .progress-item {
             background: var(--light-black);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 8px;
         }
         
         .progress-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         
         .progress-filename {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
@@ -416,14 +418,14 @@
         .progress-percentage {
             font-weight: 600;
             color: var(--primary-red);
-            margin-left: 15px;
-            font-size: 14px;
+            margin-left: 12px;
+            font-size: 13px;
         }
         
         .progress-bar-container {
-            height: 10px;
+            height: 8px;
             background: var(--dark-black);
-            border-radius: 5px;
+            border-radius: 4px;
             overflow: hidden;
             margin-bottom: 4px;
         }
@@ -445,7 +447,7 @@
         }
         
         .progress-status {
-            font-size: 12px;
+            font-size: 11px;
             color: var(--text-gray);
             display: flex;
             justify-content: space-between;
@@ -457,59 +459,29 @@
         
         .upload-counter {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 12px;
+            right: 12px;
             background: var(--primary-red);
             color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: 600;
             display: none;
         }
         
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 500;
-            font-size: 15px;
-            color: var(--text-white);
-        }
-        
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--light-black);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 8px;
-            color: var(--text-white);
-            font-size: 15px;
-            resize: vertical;
-            transition: border-color 0.2s;
-        }
-        
-        .form-input:focus, .form-select:focus, .form-textarea:focus {
-            outline: none;
-            border-color: var(--primary-red);
-            box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.1);
-        }
-        
         .btn {
-            padding: 14px 28px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
-            font-size: 15px;
+            border-radius: 6px;
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .btn-primary {
@@ -540,19 +512,28 @@
         }
         
         /* PÁGINA DE CHAT */
+        #chatPage {
+            padding-top: 0;
+        }
+        
         .chat-header {
             background: var(--medium-black);
-            padding: 16px;
+            padding: 12px 16px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: sticky;
             top: 0;
             z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            height: 56px;
         }
         
         .chat-header-content {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            flex: 1;
         }
         
         .chat-header-top {
@@ -569,15 +550,15 @@
         
         .online-count {
             color: var(--text-gray);
-            font-size: 12px;
+            font-size: 11px;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         
         .online-dot {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
             background: var(--online-green);
             border-radius: 50%;
             animation: pulse 2s infinite;
@@ -590,27 +571,27 @@
         
         .user-typing {
             color: var(--typing-blue);
-            font-size: 13px;
+            font-size: 12px;
             font-style: italic;
-            height: 20px;
+            height: 18px;
             overflow: hidden;
         }
         
         .chat-messages {
-            padding: 16px;
-            padding-bottom: 80px;
+            padding: 12px;
+            padding-bottom: 70px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            min-height: calc(100vh - 140px);
-            max-height: calc(100vh - 140px);
+            gap: 12px;
+            min-height: calc(100vh - 56px);
+            max-height: calc(100vh - 56px);
             overflow-y: auto;
         }
         
         .message {
-            max-width: 80%;
-            padding: 12px 16px;
-            border-radius: 18px;
+            max-width: 85%;
+            padding: 10px 14px;
+            border-radius: 16px;
             position: relative;
             animation: messageSlide 0.3s ease;
         }
@@ -638,15 +619,23 @@
             border-bottom-left-radius: 4px;
         }
         
+        .message-header {
+            font-size: 11px;
+            color: var(--text-gray);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        
         .message-content {
             word-wrap: break-word;
+            font-size: 14px;
         }
         
         .message-info {
             display: flex;
             justify-content: space-between;
             margin-top: 4px;
-            font-size: 11px;
+            font-size: 10px;
             opacity: 0.8;
         }
         
@@ -660,9 +649,9 @@
         
         .message-image {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 12px;
-            margin-top: 8px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 6px;
             cursor: pointer;
             transition: transform 0.2s;
         }
@@ -673,9 +662,9 @@
         
         .message-video {
             max-width: 100%;
-            max-height: 300px;
-            border-radius: 12px;
-            margin-top: 8px;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 6px;
             cursor: pointer;
         }
         
@@ -685,21 +674,22 @@
             left: 0;
             right: 0;
             background: var(--dark-black);
-            padding: 12px 16px;
+            padding: 10px 12px;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
+            height: 70px;
         }
         
         .chat-input {
             flex: 1;
-            padding: 12px 16px;
+            padding: 10px 14px;
             background: var(--light-black);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
+            border-radius: 20px;
             color: var(--text-white);
-            font-size: 14px;
+            font-size: 13px;
             transition: border-color 0.2s;
         }
         
@@ -716,10 +706,10 @@
             background: transparent;
             border: none;
             color: var(--text-white);
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
-            width: 48px;
-            height: 48px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -741,14 +731,14 @@
         
         .media-options {
             position: fixed;
-            bottom: 80px;
-            right: 20px;
+            bottom: 70px;
+            right: 12px;
             background: var(--medium-black);
-            border-radius: 12px;
-            padding: 8px;
+            border-radius: 10px;
+            padding: 6px;
             display: none;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 100;
@@ -761,15 +751,16 @@
         .media-option {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
+            gap: 10px;
+            padding: 10px 14px;
             background: transparent;
             border: none;
             color: var(--text-white);
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 6px;
             transition: background 0.2s;
-            min-width: 180px;
+            min-width: 160px;
+            font-size: 14px;
         }
         
         .media-option:hover {
@@ -791,7 +782,7 @@
         }
         
         .video-modal-content {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 10px;
             position: relative;
@@ -812,10 +803,10 @@
             background: rgba(0, 0, 0, 0.8);
             border: none;
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -830,9 +821,9 @@
         
         .video-player-container {
             background: black;
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
         }
         
@@ -850,69 +841,30 @@
         
         .video-details {
             background: var(--medium-black);
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 24px;
+            border-radius: 6px;
+            padding: 20px;
         }
         
         .video-title-large {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: var(--text-white);
             line-height: 1.4;
-        }
-        
-        .video-author {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        .video-author:hover {
-            opacity: 0.8;
-        }
-        
-        .video-author-info {
-            flex: 1;
-        }
-        
-        .video-author-name {
-            font-weight: 500;
-            font-size: 16px;
-            margin-bottom: 4px;
-        }
-        
-        .video-author-username {
-            color: var(--text-gray);
-            font-size: 13px;
-        }
-        
-        .video-stats {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .video-actions-compact {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
             flex-wrap: wrap;
+            margin-top: 15px;
         }
         
         .video-action-button {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             background: transparent;
             border: none;
             color: var(--text-white);
@@ -920,19 +872,12 @@
             padding: 8px 12px;
             transition: all 0.2s;
             border-radius: 6px;
+            font-size: 14px;
         }
         
         .video-action-button:hover {
             color: var(--primary-red);
             background: rgba(255, 255, 255, 0.05);
-        }
-        
-        .video-action-button.active {
-            color: var(--primary-red);
-        }
-        
-        .video-action-button.dislike.active {
-            color: #3b82f6;
         }
         
         .video-action-button.download {
@@ -948,140 +893,24 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-        }
-        
-        .video-action-count {
-            font-size: 14px;
-            font-weight: 500;
-        }
-        
-        .comments-section {
-            background: var(--medium-black);
-            border-radius: 8px;
-            padding: 24px;
-        }
-        
-        .comments-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-white);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .comments-title span {
-            background: var(--light-black);
-            color: var(--text-gray);
-            font-size: 13px;
-            padding: 4px 10px;
-            border-radius: 12px;
-        }
-        
-        .add-comment {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
-            align-items: center;
-        }
-        
-        .comment-input {
-            flex: 1;
-            padding: 12px 16px;
-            background: var(--light-black);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 25px;
-            color: var(--text-white);
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        
-        .comment-input:focus {
-            outline: none;
-            border-color: var(--primary-red);
-        }
-        
-        .comment-input::placeholder {
-            color: var(--text-gray);
-        }
-        
-        .comments-list {
-            max-height: 350px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-        
-        .comments-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .comments-list::-webkit-scrollbar-track {
-            background: var(--light-black);
-            border-radius: 3px;
-        }
-        
-        .comments-list::-webkit-scrollbar-thumb {
-            background: var(--primary-red);
-            border-radius: 3px;
-        }
-        
-        .comment-item {
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .comment-item:last-child {
-            border-bottom: none;
-        }
-        
-        .comment-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        .comment-header:hover {
-            opacity: 0.8;
-        }
-        
-        .comment-author {
-            font-weight: 500;
-            font-size: 14px;
-        }
-        
-        .comment-time {
-            color: var(--text-gray);
-            font-size: 12px;
-            margin-left: auto;
-        }
-        
-        .comment-text {
-            font-size: 14px;
-            line-height: 1.5;
-            color: var(--text-white);
-            padding-left: 44px;
+            width: 20px;
+            height: 20px;
         }
         
         .loading {
             display: none;
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
         }
         
         .loading-spinner {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-top-color: var(--primary-red);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
         }
         
         @keyframes spin {
@@ -1090,24 +919,24 @@
         
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: var(--text-gray);
         }
         
         .empty-state i {
-            font-size: 56px;
-            margin-bottom: 20px;
+            font-size: 48px;
+            margin-bottom: 15px;
             opacity: 0.5;
         }
         
         .empty-state h3 {
-            font-size: 20px;
-            margin-bottom: 12px;
+            font-size: 18px;
+            margin-bottom: 10px;
             color: var(--text-white);
         }
         
         .empty-state p {
-            font-size: 15px;
+            font-size: 14px;
             max-width: 400px;
             margin: 0 auto;
             line-height: 1.5;
@@ -1115,18 +944,19 @@
         
         .notification {
             position: fixed;
-            top: 80px;
-            right: 24px;
-            padding: 18px 24px;
+            top: 70px;
+            right: 20px;
+            padding: 15px 20px;
             background: var(--medium-black);
-            border-radius: 10px;
+            border-radius: 8px;
             border-left: 4px solid var(--success-green);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             display: none;
             z-index: 5000;
-            max-width: 450px;
+            max-width: 400px;
             animation: slideIn 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
         }
         
         .notification.error {
@@ -1146,40 +976,54 @@
         
         @media (max-width: 768px) {
             .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 10px;
             }
             
             .video-thumbnail {
-                height: 120px;
+                height: 90px;
             }
             
             .upload-container {
-                padding: 30px 20px;
+                padding: 20px 15px;
             }
             
             .media-options {
                 bottom: 70px;
                 right: 10px;
             }
+            
+            .page-content {
+                padding: 15px;
+            }
         }
         
         @media (max-width: 480px) {
             .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 10px;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 8px;
             }
             
             .video-thumbnail {
-                height: 100px;
+                height: 80px;
             }
             
             .video-title {
-                font-size: 12px;
+                font-size: 11px;
             }
             
             .chat-input-area {
-                padding: 10px;
+                padding: 8px 10px;
+            }
+            
+            .header-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+            
+            .btn-label {
+                font-size: 8px;
             }
         }
         
@@ -1200,18 +1044,18 @@
         
         /* SCROLLBAR */
         ::-webkit-scrollbar {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
         }
         
         ::-webkit-scrollbar-track {
             background: var(--dark-black);
-            border-radius: 5px;
+            border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb {
             background: var(--primary-red);
-            border-radius: 5px;
+            border-radius: 4px;
             border: 2px solid var(--dark-black);
         }
         
@@ -1234,10 +1078,12 @@
         <div class="header-actions">
             <button class="header-btn" onclick="showUploadPage()" title="Subir video">
                 <i class="fas fa-cloud-upload-alt"></i>
+                <span class="btn-label">Subir video</span>
             </button>
             
             <button class="header-btn" onclick="showChatPage()" title="Chat">
                 <i class="fas fa-comments"></i>
+                <span class="btn-label">Chat</span>
                 <div class="unread-badge" id="unreadBadge" style="display: none;">0</div>
             </button>
         </div>
@@ -1277,7 +1123,7 @@
                     <i class="fas fa-cloud-upload-alt"></i>
                     <h3>Selecciona tu video</h3>
                     <p>Arrastra y suelta o haz clic para seleccionar</p>
-                    <p style="font-size: 13px; margin-top: 8px; color: var(--text-gray); line-height: 1.5;">
+                    <p style="font-size: 12px; margin-top: 6px; color: var(--text-gray); line-height: 1.4;">
                         Formatos: MP4, WebM, OGG, MOV, MKV<br>
                         Máximo: 500MB
                     </p>
@@ -1288,28 +1134,7 @@
                 
                 <div class="progress-container" id="progressContainer"></div>
                 
-                <div class="form-group">
-                    <label class="form-label">Título del video</label>
-                    <input type="text" class="form-input" id="videoTitle" placeholder="Ingresa un título" maxlength="100">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Descripción (Opcional)</label>
-                    <textarea class="form-textarea" id="videoDescription" placeholder="Describe tu video..." rows="4" maxlength="500"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Categoría</label>
-                    <select class="form-select" id="videoCategory">
-                        <option value="general">General</option>
-                        <option value="entretenimiento">Entretenimiento</option>
-                        <option value="música">Música</option>
-                        <option value="deportes">Deportes</option>
-                        <option value="educación">Educación</option>
-                    </select>
-                </div>
-                
-                <div style="display: flex; gap: 12px; margin-top: 32px;">
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
                     <button class="btn btn-secondary" id="cancelUpload" style="flex: 1;">Cancelar</button>
                     <button class="btn btn-primary" id="submitUpload" disabled style="flex: 1;">Subir video</button>
                 </div>
@@ -1320,13 +1145,11 @@
     <!-- PÁGINA DE CHAT -->
     <div class="page" id="chatPage">
         <div class="chat-header">
+            <button class="back-btn" onclick="goHome()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
             <div class="chat-header-content">
-                <div class="chat-header-top">
-                    <button class="back-btn" onclick="goHome()">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
-                    <div class="chat-title">Conversación</div>
-                </div>
+                <div class="chat-title">Conversación</div>
                 <div class="online-count">
                     <span class="online-dot"></span>
                     <span id="onlineCount">0</span> usuarios en línea
@@ -1627,17 +1450,16 @@
                 
                 const duration = video.duration ? formatDuration(video.duration) : '0:00';
                 const thumbnailUrl = video.thumbnail_url || 
-                    'https://placehold.co/240x140/141414/e50914?text=Video';
+                    'https://placehold.co/180x100/141414/e50914?text=Video';
                 
                 card.innerHTML = `
                     <div class="video-thumbnail">
                         <img src="${thumbnailUrl}" alt="${video.title}" loading="lazy"
-                             onerror="this.onerror=null;this.src='https://placehold.co/240x140/141414/e50914?text=Video'">
+                             onerror="this.onerror=null;this.src='https://placehold.co/180x100/141414/e50914?text=Video'">
                         <span class="video-duration">${duration}</span>
                     </div>
                     <div class="video-info">
                         <div class="video-title">${video.title}</div>
-                        <div class="video-author">${video.user_name || 'Usuario'}</div>
                     </div>
                 `;
                 
@@ -1660,17 +1482,16 @@
             
             const duration = video.duration ? formatDuration(video.duration) : '0:00';
             const thumbnailUrl = video.thumbnail_url || 
-                'https://placehold.co/240x140/141414/e50914?text=Video';
+                'https://placehold.co/180x100/141414/e50914?text=Video';
             
             card.innerHTML = `
                 <div class="video-thumbnail">
                     <img src="${thumbnailUrl}" alt="${video.title}" loading="lazy"
-                         onerror="this.onerror=null;this.src='https://placehold.co/240x140/141414/e50914?text=Video'">
+                         onerror="this.onerror=null;this.src='https://placehold.co/180x100/141414/e50914?text=Video'">
                     <span class="video-duration">${duration}</span>
                 </div>
                 <div class="video-info">
                     <div class="video-title">${video.title}</div>
-                    <div class="video-author">${video.user_name || 'Usuario'}</div>
                 </div>
             `;
             
@@ -1690,10 +1511,6 @@
 
         function updateVideoLikes(videoId, likes, dislikes) {
             if (currentVideo && currentVideo.id === videoId) {
-                const likesCount = document.getElementById('likesCount');
-                const dislikesCount = document.getElementById('dislikesCount');
-                if (likesCount) likesCount.textContent = formatNumber(likes);
-                if (dislikesCount) dislikesCount.textContent = formatNumber(dislikes);
                 currentVideo.likes = likes;
                 currentVideo.dislikes = dislikes;
             }
@@ -1701,8 +1518,6 @@
 
         function updateVideoViews(videoId, views) {
             if (currentVideo && currentVideo.id === videoId) {
-                const viewsCount = document.getElementById('viewsCount');
-                if (viewsCount) viewsCount.textContent = formatNumber(views);
                 currentVideo.views = views;
             }
         }
@@ -1732,92 +1547,34 @@
 
         async function loadVideoDetails(videoId) {
             try {
-                const token = localStorage.getItem('auth_token');
-                const response = await fetch(`${API_BASE}/api/videos/details/${videoId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+                const response = await fetch(`${API_BASE}/api/videos/${videoId}`);
                 
                 if (response.ok) {
                     const data = await response.json();
-                    renderVideoDetails(data.video, data.userReaction, data.comments || []);
+                    renderVideoDetails(data.video);
                 }
             } catch (error) {
                 console.error('Error cargando detalles:', error);
             }
         }
 
-        function renderVideoDetails(video, userReaction, comments) {
+        function renderVideoDetails(video) {
             const detailsDiv = document.getElementById('videoDetails');
             
             detailsDiv.innerHTML = `
                 <h1 class="video-title-large">${video.title}</h1>
                 
-                <div class="video-stats">
-                    <div class="video-actions-compact">
-                        <button class="video-action-button like ${userReaction === 'like' ? 'active' : ''}" 
-                                onclick="toggleReaction('like')">
-                            <div class="video-action-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="${userReaction === 'like' ? '#e50914' : 'currentColor'}">
-                                    <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="video-action-count" id="likesCount">${formatNumber(video.likes)}</div>
-                            </div>
-                        </button>
-                        
-                        <button class="video-action-button dislike ${userReaction === 'dislike' ? 'active' : ''}" 
-                                onclick="toggleReaction('dislike')">
-                            <div class="video-action-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="${userReaction === 'dislike' ? '#3b82f6' : 'currentColor'}">
-                                    <path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41.17.79.44 1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="video-action-count" id="dislikesCount">${formatNumber(video.dislikes)}</div>
-                            </div>
-                        </button>
-                        
-                        <button class="video-action-button download" onclick="downloadCurrentVideo()">
-                            <div class="video-action-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="video-action-label">Descargar</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="video-author">
-                    <div class="video-author-info">
-                        <div class="video-author-name">${video.user_name || 'Usuario'}</div>
-                        <div class="video-author-username">@${video.username || 'usuario'}</div>
-                    </div>
-                </div>
-                
-                <div class="comments-section">
-                    <h3 class="comments-title">
-                        <i class="fas fa-comments"></i>
-                        Comentarios
-                        <span id="commentsCount">${comments.length}</span>
-                    </h3>
-                    
-                    <div class="add-comment">
-                        <input type="text" class="comment-input" id="commentInput" placeholder="Escribe un comentario..." 
-                               onkeypress="if(event.key === 'Enter') addComment()">
-                        <button class="btn-comment" onclick="addComment()">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="comments-list" id="commentsList">
-                        ${renderComments(comments)}
-                    </div>
+                <div class="video-actions-compact">
+                    <button class="video-action-button download" onclick="downloadCurrentVideo()">
+                        <div class="video-action-icon">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="video-action-label">Descargar</div>
+                        </div>
+                    </button>
                 </div>
             `;
         }
@@ -1833,109 +1590,6 @@
             }
             
             currentVideo = null;
-        }
-
-        async function toggleReaction(reaction) {
-            if (!currentVideo || !currentUser) return;
-            
-            try {
-                const token = localStorage.getItem('auth_token');
-                const response = await fetch(`${API_BASE}/api/videos/${currentVideo.id}/reaction`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ reaction })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    const likeBtn = document.querySelector('.video-action-button.like');
-                    const dislikeBtn = document.querySelector('.video-action-button.dislike');
-                    
-                    if (data.reaction === 'like') {
-                        likeBtn.classList.add('active');
-                        dislikeBtn.classList.remove('active');
-                    } else if (data.reaction === 'dislike') {
-                        dislikeBtn.classList.add('active');
-                        likeBtn.classList.remove('active');
-                    } else {
-                        likeBtn.classList.remove('active');
-                        dislikeBtn.classList.remove('active');
-                    }
-                }
-            } catch (error) {
-                console.error('Error en reacción:', error);
-            }
-        }
-
-        async function addComment() {
-            if (!currentVideo || !currentUser) return;
-            
-            const commentInput = document.getElementById('commentInput');
-            const comment = commentInput.value.trim();
-            
-            if (!comment) return;
-            
-            try {
-                const token = localStorage.getItem('auth_token');
-                const response = await fetch(`${API_BASE}/api/videos/${currentVideo.id}/comment`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ comment })
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    addCommentToVideo(data.comment);
-                    commentInput.value = '';
-                    showNotification('Comentario enviado');
-                }
-            } catch (error) {
-                console.error('Error añadiendo comentario:', error);
-            }
-        }
-
-        function addCommentToVideo(comment) {
-            const commentsList = document.getElementById('commentsList');
-            const commentsCount = document.getElementById('commentsCount');
-            
-            if (commentsList && commentsCount) {
-                const commentHtml = `
-                    <div class="comment-item">
-                        <div class="comment-header">
-                            <div class="comment-author">${comment.name || comment.username}</div>
-                            <div class="comment-time">${getTimeAgo(comment.created_at)}</div>
-                        </div>
-                        <div class="comment-text">${comment.comment}</div>
-                    </div>
-                `;
-                
-                commentsList.innerHTML += commentHtml;
-                commentsCount.textContent = parseInt(commentsCount.textContent) + 1;
-                commentsList.scrollTop = commentsList.scrollHeight;
-            }
-        }
-
-        function renderComments(comments) {
-            if (!comments || comments.length === 0) {
-                return '<p style="text-align: center; color: var(--text-gray); padding: 20px 0; font-size: 13px;">No hay comentarios todavía. ¡Sé el primero en comentar!</p>';
-            }
-            
-            return comments.map(comment => `
-                <div class="comment-item">
-                    <div class="comment-header">
-                        <div class="comment-author">${comment.name || comment.username}</div>
-                        <div class="comment-time">${getTimeAgo(comment.created_at)}</div>
-                    </div>
-                    <div class="comment-text">${comment.comment}</div>
-                </div>
-            `).join('');
         }
 
         async function downloadCurrentVideo() {
@@ -2056,8 +1710,6 @@
 
         function resetUploadForm() {
             document.getElementById('videoFile').value = '';
-            document.getElementById('videoTitle').value = '';
-            document.getElementById('videoDescription').value = '';
             document.getElementById('uploadFileList').innerHTML = '';
             document.getElementById('uploadFileList').style.display = 'none';
             document.getElementById('progressContainer').innerHTML = '';
@@ -2067,26 +1719,14 @@
 
         async function uploadVideo() {
             const fileInput = document.getElementById('videoFile');
-            const titleInput = document.getElementById('videoTitle');
-            const descriptionInput = document.getElementById('videoDescription');
-            const categoryInput = document.getElementById('videoCategory');
             
             if (!fileInput.files[0]) {
                 showNotification('Selecciona un video primero', 'error');
                 return;
             }
             
-            const title = titleInput.value.trim();
-            if (!title) {
-                showNotification('Ingresa un título para el video', 'error');
-                return;
-            }
-            
             const formData = new FormData();
             formData.append('video', fileInput.files[0]);
-            formData.append('title', title);
-            formData.append('description', descriptionInput.value.trim());
-            formData.append('category', categoryInput.value);
             
             const submitBtn = document.getElementById('submitUpload');
             submitBtn.disabled = true;
@@ -2176,30 +1816,30 @@
             div.className = `message ${message.user_id === currentUser.id ? 'sent' : 'received'}`;
             
             let content = `
+                <div class="message-header">${message.username}</div>
                 <div class="message-content">${message.content}</div>
                 <div class="message-info">
-                    <span class="message-sender">${message.username}</span>
                     <span class="message-time">${getTimeAgo(message.created_at)}</span>
                 </div>
             `;
             
             if (message.media_type === 'image' && message.media_url) {
                 content = `
+                    <div class="message-header">${message.username}</div>
                     <img src="${message.media_url}" class="message-image" onclick="openMedia('${message.media_url}')">
-                    <div class="message-content">${message.content || ''}</div>
+                    ${message.content ? `<div class="message-content">${message.content}</div>` : ''}
                     <div class="message-info">
-                        <span class="message-sender">${message.username}</span>
                         <span class="message-time">${getTimeAgo(message.created_at)}</span>
                     </div>
                 `;
             } else if (message.media_type === 'video' && message.media_url) {
                 content = `
+                    <div class="message-header">${message.username}</div>
                     <video class="message-video" controls onclick="openMedia('${message.media_url}')">
                         <source src="${message.media_url}" type="video/mp4">
                     </video>
-                    <div class="message-content">${message.content || ''}</div>
+                    ${message.content ? `<div class="message-content">${message.content}</div>` : ''}
                     <div class="message-info">
-                        <span class="message-sender">${message.username}</span>
                         <span class="message-time">${getTimeAgo(message.created_at)}</span>
                     </div>
                 `;
@@ -2294,7 +1934,9 @@
         function scrollToBottom() {
             const chatMessages = document.getElementById('chatMessages');
             if (chatMessages) {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 100);
             }
         }
 
@@ -2333,13 +1975,6 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        function formatNumber(num) {
-            if (!num) return '0';
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-            return num.toString();
-        }
-
         function getTimeAgo(dateString) {
             const date = new Date(dateString);
             const now = new Date();
@@ -2349,7 +1984,7 @@
             if (seconds < 3600) return `${Math.floor(seconds / 60)} min`;
             if (seconds < 86400) return `${Math.floor(seconds / 3600)} h`;
             if (seconds < 604800) return `${Math.floor(seconds / 86400)} d`;
-            return date.toLocaleDateString();
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
         function showNotification(message, type = 'success') {
@@ -2360,7 +1995,7 @@
             
             setTimeout(() => {
                 notification.style.display = 'none';
-            }, 5000);
+            }, 3000);
         }
 
         function openMedia(url) {
