@@ -26,15 +26,15 @@
       color: var(--text);
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding: 20px;
     }
 
     .card {
       width: 100%;
-      max-width: 420px;
+      max-width: 380px;
       background: linear-gradient(180deg, rgba(229, 9, 20, 0.06), rgba(229, 9, 20, 0.02)), var(--panel);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
       overflow: hidden;
     }
@@ -72,7 +72,7 @@
     form {
       display: grid;
       gap: 14px;
-      margin-top: 6px;
+      margin-top: 10px;
     }
 
     .field {
@@ -80,18 +80,19 @@
       gap: 8px;
     }
     label {
-      font-size: 0.92rem;
+      font-size: 0.9rem;
       color: var(--muted);
     }
-    input[type="text"], input[type="password"], input[type="email"] {
+    input[type="text"], input[type="password"] {
       width: 100%;
-      padding: 12px 12px;
+      padding: 12px 14px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: #121215;
       color: var(--text);
       outline: none;
       transition: border-color 140ms ease, box-shadow 140ms ease;
+      font-size: 14px;
     }
     input::placeholder { color: #8c8c93; }
     input:focus {
@@ -101,10 +102,11 @@
 
     .logo {
       text-align: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      padding-top: 15px;
     }
     .logo h1 {
-      font-size: 28px;
+      font-size: 26px;
       color: var(--accent);
       margin: 0 0 8px;
       display: flex;
@@ -114,7 +116,7 @@
     }
     .logo p {
       color: var(--muted);
-      font-size: 0.94rem;
+      font-size: 0.9rem;
       margin: 0;
     }
 
@@ -129,7 +131,7 @@
       transition: all 160ms ease;
       background: var(--accent);
       color: white;
-      margin-top: 8px;
+      margin-top: 10px;
     }
     .btn:hover {
       background: var(--accent-2);
@@ -149,23 +151,14 @@
       margin-bottom: 16px;
     }
 
-    .demo-note {
-      text-align: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-      margin-top: 20px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-    }
-
     .loader {
       display: none;
       text-align: center;
       margin: 20px 0;
     }
     .loader-spinner {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       border: 3px solid rgba(255,255,255,0.1);
       border-top-color: var(--accent);
       border-radius: 50%;
@@ -177,7 +170,7 @@
     }
 
     .logo-icon {
-      font-size: 28px;
+      font-size: 26px;
     }
   </style>
 </head>
@@ -206,8 +199,8 @@
       <!-- FORMULARIO DE LOGIN -->
       <form id="loginForm" style="display: block;">
         <div class="field">
-          <label for="loginUsername">Usuario</label>
-          <input type="text" id="loginUsername" placeholder="Ingresa tu usuario" required>
+          <label for="loginUsername">Nombre</label>
+          <input type="text" id="loginUsername" placeholder="Ingresa tu nombre" required>
         </div>
         <div class="field">
           <label for="loginPassword">Contraseña</label>
@@ -221,29 +214,17 @@
       <!-- FORMULARIO DE REGISTRO -->
       <form id="registerForm" style="display: none;">
         <div class="field">
-          <label for="registerUsername">Usuario *</label>
-          <input type="text" id="registerUsername" placeholder="Elige un nombre de usuario" required>
-        </div>
-        <div class="field">
-          <label for="registerName">Nombre completo</label>
-          <input type="text" id="registerName" placeholder="Tu nombre (opcional)">
-        </div>
-        <div class="field">
-          <label for="registerEmail">Email</label>
-          <input type="email" id="registerEmail" placeholder="tu@email.com (opcional)">
+          <label for="registerUsername">Nombre *</label>
+          <input type="text" id="registerUsername" placeholder="Elige un nombre" required>
         </div>
         <div class="field">
           <label for="registerPassword">Contraseña *</label>
-          <input type="password" id="registerPassword" placeholder="Crea una contraseña segura" required>
+          <input type="password" id="registerPassword" placeholder="Crea una contraseña" required>
         </div>
         <button type="submit" class="btn">
           <i class="fas fa-user-plus"></i> Crear cuenta
         </button>
       </form>
-
-      <div class="demo-note">
-        <p><strong>Credenciales demo:</strong> usuario: <code>demo</code> • contraseña: <code>demo123</code></p>
-      </div>
     </div>
   </div>
 
@@ -343,17 +324,15 @@
       e.preventDefault();
 
       const username = document.getElementById('registerUsername').value.trim();
-      const name = document.getElementById('registerName').value.trim();
-      const email = document.getElementById('registerEmail').value.trim();
       const password = document.getElementById('registerPassword').value;
 
       if (!username || !password) {
-        showError('Usuario y contraseña son obligatorios');
+        showError('Nombre y contraseña son obligatorios');
         return;
       }
 
-      if (password.length < 6) {
-        showError('La contraseña debe tener al menos 6 caracteres');
+      if (password.length < 4) {
+        showError('La contraseña debe tener al menos 4 caracteres');
         return;
       }
 
@@ -369,8 +348,7 @@
           body: JSON.stringify({ 
             username, 
             password, 
-            name: name || username,
-            email: email || '' 
+            name: username
           })
         });
 
