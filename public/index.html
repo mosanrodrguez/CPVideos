@@ -49,6 +49,12 @@
             justify-content: space-between;
             padding: 0 16px;
             z-index: 1000;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .app-header.hidden {
+            opacity: 0;
+            visibility: hidden;
         }
         
         .logo {
@@ -1068,7 +1074,7 @@
     <!-- NOTIFICACIÓN -->
     <div class="notification" id="notification"></div>
     
-    <!-- HEADER PRINCIPAL -->
+    <!-- HEADER PRINCIPAL (solo visible en home) -->
     <header class="app-header" id="appHeader">
         <div class="logo" onclick="goHome()">
             <i class="fas fa-video logo-icon"></i>
@@ -1406,6 +1412,14 @@
         function showPage(pageId) {
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId + 'Page').classList.add('active');
+            
+            // Mostrar/ocultar header principal
+            const appHeader = document.getElementById('appHeader');
+            if (pageId === 'home') {
+                appHeader.classList.remove('hidden');
+            } else {
+                appHeader.classList.add('hidden');
+            }
             
             // Cerrar modal de video si está abierto
             if (pageId !== 'home') {
