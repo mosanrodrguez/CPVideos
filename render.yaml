@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: cpvideos
+    env: node
+    plan: free
+    region: ohio  # También puedes usar: oregon, frankfurt, singapore
+    buildCommand: |
+      # Instalar FFmpeg
+      apt-get update && apt-get install -y ffmpeg
+      
+      # Instalar dependencias Node.js
+      npm install
+      
+      # Crear directorios necesarios
+      mkdir -p uploads/chat_media videos thumbnails
+      
+      # Verificar FFmpeg instalado
+      ffmpeg -version
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 3000
+    autoDeploy: true
