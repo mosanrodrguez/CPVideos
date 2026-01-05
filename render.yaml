@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: video-platform-pro
+    name: video-platform-render
     env: node
     buildCommand: |
       apt-get update
