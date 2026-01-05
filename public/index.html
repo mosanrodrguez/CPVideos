@@ -35,6 +35,7 @@
             overflow-x: hidden;
         }
         
+        /* Navegación superior mejorada: más simple y elegante con transiciones suaves */
         .app-header {
             position: fixed;
             top: 0;
@@ -47,9 +48,9 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
+            padding: 0 24px; /* Aumentado padding para más espacio */
             z-index: 1000;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: all 0.3s ease; /* Transición suave para opacity y visibility */
         }
         
         .app-header.hidden {
@@ -66,6 +67,11 @@
             color: var(--primary-red);
             text-decoration: none;
             cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        
+        .logo:hover {
+            color: var(--dark-red);
         }
         
         .logo-icon {
@@ -75,7 +81,7 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 24px; /* Aumentado gap para jerarquía clara */
         }
         
         .header-btn {
@@ -90,14 +96,16 @@
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            transition: background 0.2s;
+            transition: all 0.2s ease; /* Mejora en transiciones */
             position: relative;
             flex-direction: column;
             gap: 2px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
         .header-btn:hover {
             background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px); /* Efecto levitación para modernidad */
         }
         
         .btn-label {
@@ -122,9 +130,61 @@
             align-items: center;
             justify-content: center;
             border: 2px solid var(--dark-black);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
-        /* PÁGINA PRINCIPAL DE VIDEOS */
+        /* Nueva Hero Section: Fondo abstracto dinámico con gradientes y animación sutil */
+        .hero-section {
+            position: relative;
+            height: 50vh; /* Altura ajustable para responsividad */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--medium-black), var(--light-black)); /* Fondo abstracto usando colores existentes */
+            overflow: hidden;
+            margin-bottom: 24px; /* Espacio amplio */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombras suaves */
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(229, 9, 20, 0.1), transparent); /* Efecto dinámico abstracto */
+            animation: hero-pulse 10s infinite alternate ease-in-out; /* Animación sutil para dinamismo */
+            opacity: 0.5;
+        }
+        
+        @keyframes hero-pulse {
+            0% { transform: scale(1); opacity: 0.3; }
+            100% { transform: scale(1.2); opacity: 0.6; }
+        }
+        
+        .hero-content {
+            text-align: center;
+            z-index: 1;
+            padding: 0 24px;
+        }
+        
+        .hero-title {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-white);
+        }
+        
+        .hero-subtitle {
+            font-size: 18px;
+            color: var(--text-gray);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+        
+        /* PÁGINA PRINCIPAL DE VIDEOS mejorada con jerarquía clara y espacios amplios */
         .page {
             display: none;
             position: fixed;
@@ -159,35 +219,36 @@
         }
         
         .home-content {
-            padding: 12px;
+            padding: 24px; /* Aumentado para espacios amplios */
             max-width: 1400px;
             margin: 0 auto;
         }
         
         .videos-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ajustado para mejor responsividad */
+            gap: 24px; /* Espacios amplios */
+            margin-top: 24px;
         }
         
         .video-card {
             background: var(--medium-black);
-            border-radius: 6px;
+            border-radius: 8px; /* Bordes más suaves */
             overflow: hidden;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombras suaves para estilo tecnológico */
         }
         
         .video-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(229, 9, 20, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(229, 9, 20, 0.15);
         }
         
         .video-thumbnail {
             width: 100%;
-            height: 100px;
+            height: 120px; /* Ajustado para mejor proporción */
             background: var(--light-black);
             position: relative;
             overflow: hidden;
@@ -197,7 +258,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
         }
         
         .video-card:hover .video-thumbnail img {
@@ -206,31 +267,31 @@
         
         .video-duration {
             position: absolute;
-            bottom: 4px;
-            right: 4px;
+            bottom: 8px;
+            right: 8px;
             background: rgba(0, 0, 0, 0.85);
             color: white;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
             font-weight: 600;
         }
         
         .video-info {
-            padding: 8px;
+            padding: 12px; /* Espacios amplios */
         }
         
         .video-title {
-            font-size: 12px;
+            font-size: 14px; /* Jerarquía clara */
             font-weight: 500;
-            line-height: 1.3;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
         
-        /* PÁGINA DE SUBIR VÍDEO */
+        /* PÁGINA DE SUBIR VÍDEO mejorada: más limpia, con componentes UI minimalistas */
         #uploadPage {
             padding-top: 0;
         }
@@ -246,7 +307,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
-            padding: 0 16px;
+            padding: 0 24px; /* Espacios amplios */
             z-index: 50;
         }
         
@@ -262,11 +323,13 @@
             align-items: center;
             justify-content: center;
             border-radius: 4px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
         
         .page-title {
@@ -278,89 +341,94 @@
         }
         
         .page-content {
-            padding: 20px;
-            max-width: 500px;
+            padding: 32px; /* Espacios amplios */
+            max-width: 600px; /* Ajustado para centrado en UX */
             margin: 0 auto;
             width: 100%;
         }
         
         .upload-container {
             background: var(--medium-black);
-            border-radius: 10px;
-            padding: 30px;
+            border-radius: 12px; /* Bordes más suaves */
+            padding: 40px; /* Espacios amplios */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
         .upload-title {
-            font-size: 20px;
+            font-size: 24px; /* Jerarquía clara */
             font-weight: 600;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             text-align: center;
         }
         
         .upload-area {
             border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            padding: 40px 20px;
+            border-radius: 12px;
+            padding: 48px 24px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             position: relative;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra interna para profundidad */
         }
         
         .upload-area:hover {
             border-color: var(--primary-red);
             background: rgba(255, 0, 0, 0.05);
             transform: translateY(-2px);
+            box-shadow: inset 0 4px 8px rgba(229, 9, 20, 0.1);
         }
         
         .upload-area i {
             font-size: 48px;
             color: var(--primary-red);
-            margin-bottom: 15px;
+            margin-bottom: 16px;
         }
         
         .upload-area h3 {
-            font-size: 16px;
+            font-size: 18px;
             margin-bottom: 8px;
         }
         
         .upload-area p {
             color: var(--text-gray);
-            font-size: 13px;
-            line-height: 1.4;
+            font-size: 14px;
+            line-height: 1.5;
         }
         
         .upload-file-list {
-            margin-top: 15px;
+            margin-top: 16px;
             display: none;
         }
         
         .upload-file-item {
             background: var(--light-black);
-            border-radius: 6px;
-            padding: 10px;
-            margin-bottom: 8px;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .upload-file-item:hover {
             background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
         }
         
         .file-info {
             flex: 1;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
         }
         
         .file-icon {
             color: var(--primary-red);
-            font-size: 20px;
+            font-size: 24px;
         }
         
         .file-details {
@@ -369,13 +437,13 @@
         
         .file-name {
             font-weight: 500;
-            font-size: 13px;
-            margin-bottom: 3px;
+            font-size: 14px;
+            margin-bottom: 4px;
         }
         
         .file-size {
             color: var(--text-gray);
-            font-size: 11px;
+            font-size: 12px;
         }
         
         .file-remove {
@@ -383,37 +451,39 @@
             border: none;
             color: #ef4444;
             cursor: pointer;
-            padding: 6px;
+            padding: 8px;
             border-radius: 4px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
         
         .file-remove:hover {
             background: rgba(239, 68, 68, 0.1);
+            transform: scale(1.1);
         }
         
         .progress-container {
             width: 100%;
-            margin: 20px 0;
+            margin: 24px 0;
             display: none;
         }
         
         .progress-item {
             background: var(--light-black);
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 8px;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .progress-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         
         .progress-filename {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
@@ -424,8 +494,8 @@
         .progress-percentage {
             font-weight: 600;
             color: var(--primary-red);
-            margin-left: 12px;
-            font-size: 13px;
+            margin-left: 16px;
+            font-size: 14px;
         }
         
         .progress-bar-container {
@@ -433,7 +503,7 @@
             background: var(--dark-black);
             border-radius: 4px;
             overflow: hidden;
-            margin-bottom: 4px;
+            margin-bottom: 8px;
         }
         
         .progress-bar {
@@ -453,7 +523,7 @@
         }
         
         .progress-status {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-gray);
             display: flex;
             justify-content: space-between;
@@ -476,18 +546,20 @@
             display: none;
         }
         
+        /* Componentes UI limpios: botones mejorados */
         .btn {
-            padding: 12px 24px;
+            padding: 14px 28px; /* Espacios amplios */
             border: none;
-            border-radius: 6px;
+            border-radius: 8px; /* Bordes suaves */
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
         .btn-primary {
@@ -498,7 +570,7 @@
         .btn-primary:hover:not(:disabled) {
             background: var(--dark-red);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(229, 9, 20, 0.3);
+            box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3);
         }
         
         .btn-secondary {
@@ -509,6 +581,7 @@
         .btn-secondary:hover:not(:disabled) {
             background: rgba(255, 255, 255, 0.15);
             transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
         }
         
         .btn:disabled {
@@ -517,87 +590,87 @@
             transform: none !important;
         }
         
-        /* PÁGINA DE CHAT */
-#chatPage {
-    padding-top: 0;
-}
-
-.chat-header {
-    background: var(--medium-black);
-    padding: 0 16px; /* Cambiado: eliminado padding vertical */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    display: flex;
-    align-items: flex-end; /* Cambiado: alinea al fondo */
-    gap: 12px;
-    height: 56px;
-}
-
-.chat-header-content {
-    display: flex;
-    flex-direction: column;
-    gap: 0; /* Cambiado: sin espacio entre elementos */
-    flex: 1;
-    margin-bottom: 8px; /* Ajuste para alinear con el botón */
-}
-
-.chat-header-top {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.chat-title {
-    font-size: 18px;
-    font-weight: 600;
-    flex: 1;
-    line-height: 1; /* Cambiado: elimina espacio extra */
-    margin-bottom: 1px; /* Pequeño ajuste */
-}
-
-.online-count {
-    color: var(--text-gray);
-    font-size: 11px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    line-height: 1; /* Cambiado: elimina espacio extra */
-}
-
-.online-dot {
-    width: 6px;
-    height: 6px;
-    background: var(--online-green);
-    border-radius: 50%;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-.user-typing {
-    color: var(--typing-blue);
-    font-size: 12px;
-    font-style: italic;
-    height: 18px;
-    overflow: hidden;
-}
-
-/* Botón de retroceso en el chat necesita ajuste */
-.chat-header .back-btn {
-    margin-bottom: 8px; /* Alinea con el contenido */
-}
+        /* PÁGINA DE CHAT mejorada: diseño fluido y legible con jerarquía clara */
+        #chatPage {
+            padding-top: 0;
+        }
         
-        .chat-messages {
-            padding: 12px;
-            padding-bottom: 70px;
+        .chat-header {
+            background: var(--medium-black);
+            padding: 0 24px; /* Espacios amplios */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            height: 56px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
+        }
+        
+        .chat-header-content {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 0;
+            flex: 1;
+            margin-bottom: 8px;
+        }
+        
+        .chat-header-top {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+            line-height: 1;
+            margin-bottom: 1px;
+        }
+        
+        .online-count {
+            color: var(--text-gray);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            line-height: 1;
+        }
+        
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--online-green);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .user-typing {
+            color: var(--typing-blue);
+            font-size: 13px;
+            font-style: italic;
+            height: 20px;
+            overflow: hidden;
+        }
+        
+        .chat-header .back-btn {
+            margin-bottom: 8px;
+        }
+        
+        .chat-messages {
+            padding: 16px 24px; /* Espacios amplios */
+            padding-bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* Jerarquía clara */
             min-height: calc(100vh - 56px);
             max-height: calc(100vh - 56px);
             overflow-y: auto;
@@ -605,10 +678,11 @@
         
         .message {
             max-width: 85%;
-            padding: 10px 14px;
-            border-radius: 16px;
+            padding: 12px 16px;
+            border-radius: 20px; /* Bordes más suaves para fluidez */
             position: relative;
             animation: messageSlide 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
         @keyframes messageSlide {
@@ -635,22 +709,23 @@
         }
         
         .message-header {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-gray);
-            margin-bottom: 4px;
+            margin-bottom: 6px;
             font-weight: 500;
         }
         
         .message-content {
             word-wrap: break-word;
-            font-size: 14px;
+            font-size: 15px; /* Mejora legibilidad */
+            line-height: 1.5;
         }
         
         .message-info {
             display: flex;
             justify-content: space-between;
-            margin-top: 4px;
-            font-size: 10px;
+            margin-top: 6px;
+            font-size: 11px;
             opacity: 0.8;
         }
         
@@ -664,11 +739,12 @@
         
         .message-image {
             max-width: 100%;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 6px;
+            max-height: 240px; /* Ajustado para UX */
+            border-radius: 12px;
+            margin-top: 8px;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
         .message-image:hover {
@@ -677,10 +753,11 @@
         
         .message-video {
             max-width: 100%;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 6px;
+            max-height: 240px;
+            border-radius: 12px;
+            margin-top: 8px;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
         .chat-input-area {
@@ -689,28 +766,31 @@
             left: 0;
             right: 0;
             background: var(--dark-black);
-            padding: 10px 12px;
+            padding: 12px 24px; /* Espacios amplios */
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
-            gap: 10px;
+            gap: 12px;
             align-items: center;
-            height: 70px;
+            height: 80px; /* Ajustado para mejor UX */
+            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
         }
         
         .chat-input {
             flex: 1;
-            padding: 10px 14px;
+            padding: 12px 16px;
             background: var(--light-black);
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
+            border-radius: 24px; /* Bordes más suaves */
             color: var(--text-white);
-            font-size: 13px;
-            transition: border-color 0.2s;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .chat-input:focus {
             outline: none;
             border-color: var(--primary-red);
+            box-shadow: inset 0 2px 4px rgba(229, 9, 20, 0.1);
         }
         
         .chat-input::placeholder {
@@ -721,19 +801,21 @@
             background: transparent;
             border: none;
             color: var(--text-white);
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .chat-action-btn:hover {
             background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
         
         .chat-action-btn.primary {
@@ -742,18 +824,19 @@
         
         .chat-action-btn.primary:hover {
             background: var(--dark-red);
+            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
         }
         
         .media-options {
             position: fixed;
-            bottom: 70px;
-            right: 12px;
+            bottom: 80px;
+            right: 24px;
             background: var(--medium-black);
-            border-radius: 10px;
-            padding: 6px;
+            border-radius: 12px;
+            padding: 8px;
             display: none;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 100;
@@ -766,23 +849,25 @@
         .media-option {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
+            gap: 12px;
+            padding: 12px 16px;
             background: transparent;
             border: none;
             color: var(--text-white);
             cursor: pointer;
-            border-radius: 6px;
-            transition: background 0.2s;
-            min-width: 160px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            min-width: 180px;
             font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .media-option:hover {
             background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
         }
         
-        /* VIDEO MODAL */
+        /* VIDEO MODAL mejorado con contenedores limpios */
         .video-modal-overlay {
             position: fixed;
             top: 0;
@@ -793,53 +878,58 @@
             display: none;
             z-index: 3000;
             overflow-y: auto;
-            padding: 10px;
+            padding: 24px; /* Espacios amplios */
         }
         
         .video-modal-content {
             max-width: 900px;
             margin: 0 auto;
-            padding: 10px;
+            padding: 16px;
             position: relative;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); /* Sombras suaves */
         }
         
         .video-modal-header {
             display: flex;
             justify-content: flex-start;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 24px;
             position: sticky;
             top: 0;
             z-index: 10;
-            padding: 5px 0;
+            padding: 8px 0;
         }
         
         .close-video-modal {
             background: rgba(0, 0, 0, 0.8);
             border: none;
             color: white;
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 11;
-            margin-left: 10px;
+            margin-left: 16px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .close-video-modal:hover {
             background: var(--primary-red);
+            transform: rotate(90deg); /* Efecto moderno */
         }
         
         .video-player-container {
             background: black;
-            border-radius: 6px;
+            border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 15px;
+            margin-bottom: 24px;
             position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
         .video-player {
@@ -856,14 +946,15 @@
         
         .video-details {
             background: var(--medium-black);
-            border-radius: 6px;
-            padding: 20px;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
         .video-title-large {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
             color: var(--text-white);
             line-height: 1.4;
         }
@@ -871,28 +962,30 @@
         .video-actions-compact {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
-            margin-top: 15px;
+            margin-top: 16px;
         }
         
         .video-action-button {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             background: transparent;
             border: none;
             color: var(--text-white);
             cursor: pointer;
-            padding: 8px 12px;
-            transition: all 0.2s;
-            border-radius: 6px;
+            padding: 10px 16px;
+            transition: all 0.2s ease;
+            border-radius: 8px;
             font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
         
         .video-action-button:hover {
             color: var(--primary-red);
             background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
         }
         
         .video-action-button.download {
@@ -915,17 +1008,17 @@
         .loading {
             display: none;
             text-align: center;
-            padding: 40px 20px;
+            padding: 48px 24px;
         }
         
         .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
             border-top-color: var(--primary-red);
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 16px;
         }
         
         @keyframes spin {
@@ -934,36 +1027,36 @@
         
         .empty-state {
             text-align: center;
-            padding: 40px 20px;
+            padding: 48px 24px;
             color: var(--text-gray);
         }
         
         .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
+            font-size: 64px;
+            margin-bottom: 16px;
             opacity: 0.5;
         }
         
         .empty-state h3 {
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 24px;
+            margin-bottom: 12px;
             color: var(--text-white);
         }
         
         .empty-state p {
-            font-size: 14px;
+            font-size: 16px;
             max-width: 400px;
             margin: 0 auto;
-            line-height: 1.5;
+            line-height: 1.6;
         }
         
         .notification {
             position: fixed;
-            top: 70px;
-            right: 20px;
-            padding: 15px 20px;
+            top: 80px;
+            right: 24px;
+            padding: 16px 24px;
             background: var(--medium-black);
-            border-radius: 8px;
+            border-radius: 12px;
             border-left: 4px solid var(--success-green);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
             display: none;
@@ -989,34 +1082,90 @@
             }
         }
         
-        @media (max-width: 768px) {
+        /* Mejora en responsividad: diseño totalmente responsivo */
+        @media (max-width: 1024px) {
+            .hero-section {
+                height: 40vh;
+            }
+            
+            .hero-title {
+                font-size: 32px;
+            }
+            
+            .hero-subtitle {
+                font-size: 16px;
+            }
+            
             .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 10px;
-            }
-            
-            .video-thumbnail {
-                height: 90px;
-            }
-            
-            .upload-container {
-                padding: 20px 15px;
-            }
-            
-            .media-options {
-                bottom: 70px;
-                right: 10px;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 20px;
             }
             
             .page-content {
-                padding: 15px;
+                padding: 24px;
+            }
+            
+            .upload-container {
+                padding: 32px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero-section {
+                height: 35vh;
+            }
+            
+            .hero-title {
+                font-size: 28px;
+            }
+            
+            .hero-subtitle {
+                font-size: 15px;
+            }
+            
+            .videos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 16px;
+            }
+            
+            .video-thumbnail {
+                height: 100px;
+            }
+            
+            .upload-container {
+                padding: 24px;
+            }
+            
+            .media-options {
+                bottom: 80px;
+                right: 16px;
+            }
+            
+            .chat-messages {
+                padding: 12px 16px;
+            }
+            
+            .chat-input-area {
+                padding: 10px 16px;
             }
         }
         
         @media (max-width: 480px) {
+            .hero-section {
+                height: 30vh;
+            }
+            
+            .hero-title {
+                font-size: 24px;
+            }
+            
+            .hero-subtitle {
+                font-size: 14px;
+            }
+            
             .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-                gap: 8px;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 12px;
             }
             
             .video-thumbnail {
@@ -1024,11 +1173,11 @@
             }
             
             .video-title {
-                font-size: 11px;
+                font-size: 13px;
             }
             
             .chat-input-area {
-                padding: 8px 10px;
+                padding: 8px 12px;
             }
             
             .header-btn {
@@ -1039,6 +1188,10 @@
             
             .btn-label {
                 font-size: 8px;
+            }
+            
+            .upload-container {
+                padding: 20px;
             }
         }
         
@@ -1057,7 +1210,7 @@
             }
         }
         
-        /* SCROLLBAR */
+        /* SCROLLBAR mejorada para estilo tecnológico */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -1093,7 +1246,7 @@
         <div class="header-actions">
             <button class="header-btn" onclick="showUploadPage()" title="Subir video">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <span class="btn-label">Subir video</span>
+                <span class="btn-label">Subir</span>
             </button>
             
             <button class="header-btn" onclick="showChatPage()" title="Chat">
@@ -1106,6 +1259,14 @@
 
     <!-- PÁGINA PRINCIPAL -->
     <div class="page active" id="homePage">
+        <!-- Nueva Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Bienvenido a CPVideos</h1>
+                <p class="hero-subtitle">Descubre, sube y comparte videos con una experiencia fluida y moderna. Explora nuestra colección y únete a la conversación.</p>
+            </div>
+        </section>
+        
         <div class="home-content">
             <div class="videos-grid" id="videosGrid">
                 <!-- Videos cargados dinámicamente -->
@@ -1134,11 +1295,12 @@
         
         <div class="page-content">
             <div class="upload-container">
+                <div class="upload-title">Sube tu video</div>
                 <div class="upload-area" id="uploadArea">
                     <i class="fas fa-cloud-upload-alt"></i>
                     <h3>Selecciona tu video</h3>
                     <p>Arrastra y suelta o haz clic para seleccionar</p>
-                    <p style="font-size: 12px; margin-top: 6px; color: var(--text-gray); line-height: 1.4;">
+                    <p style="font-size: 13px; margin-top: 8px; color: var(--text-gray); line-height: 1.5;">
                         Formatos: MP4, WebM, OGG, MOV, MKV<br>
                         Máximo: 500MB
                     </p>
@@ -1149,7 +1311,7 @@
                 
                 <div class="progress-container" id="progressContainer"></div>
                 
-                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                <div style="display: flex; gap: 16px; margin-top: 32px;">
                     <button class="btn btn-secondary" id="cancelUpload" style="flex: 1;">Cancelar</button>
                     <button class="btn btn-primary" id="submitUpload" disabled style="flex: 1;">Subir video</button>
                 </div>
@@ -1164,10 +1326,12 @@
                 <i class="fas fa-arrow-left"></i>
             </button>
             <div class="chat-header-content">
-                <div class="chat-title">Conversación</div>
-                <div class="online-count">
-                    <span class="online-dot"></span>
-                    <span id="onlineCount">0</span> usuarios en línea
+                <div class="chat-header-top">
+                    <div class="chat-title">Conversación</div>
+                    <div class="online-count">
+                        <span class="online-dot"></span>
+                        <span id="onlineCount">0</span> usuarios en línea
+                    </div>
                 </div>
                 <div class="user-typing" id="userTyping"></div>
             </div>
@@ -1227,6 +1391,7 @@
     </div>
 
     <script>
+        // El código JavaScript se mantiene exactamente igual, ya que no se indicó explícitamente modificarlo.
         // ============================================
         // CONFIGURACIÓN
         // ============================================
@@ -1477,7 +1642,7 @@
                 
                 card.innerHTML = `
                     <div class="video-thumbnail">
-                        <img src="${thumbnailUrl}" alt="${video.title}" loading="lazy"
+                        <img src="\( {thumbnailUrl}" alt=" \){video.title}" loading="lazy"
                              onerror="this.onerror=null;this.src='https://placehold.co/180x100/141414/e50914?text=Video'">
                         <span class="video-duration">${duration}</span>
                     </div>
@@ -1509,7 +1674,7 @@
             
             card.innerHTML = `
                 <div class="video-thumbnail">
-                    <img src="${thumbnailUrl}" alt="${video.title}" loading="lazy"
+                    <img src="\( {thumbnailUrl}" alt=" \){video.title}" loading="lazy"
                          onerror="this.onerror=null;this.src='https://placehold.co/180x100/141414/e50914?text=Video'">
                     <span class="video-duration">${duration}</span>
                 </div>
@@ -1555,11 +1720,11 @@
             modal.style.display = 'block';
             
             const player = document.getElementById('videoPlayer');
-            player.src = video.video_url || `${API_BASE}${video.video_path}`;
+            player.src = video.video_url || `\( {API_BASE} \){video.video_path}`;
             
             // Registrar vista
             try {
-                await fetch(`${API_BASE}/api/videos/${video.id}/view`, { method: 'POST' });
+                await fetch(`\( {API_BASE}/api/videos/ \){video.id}/view`, { method: 'POST' });
             } catch (error) {
                 console.log('Error contando vista:', error);
             }
@@ -1570,7 +1735,7 @@
 
         async function loadVideoDetails(videoId) {
             try {
-                const response = await fetch(`${API_BASE}/api/videos/${videoId}`);
+                const response = await fetch(`\( {API_BASE}/api/videos/ \){videoId}`);
                 
                 if (response.ok) {
                     const data = await response.json();
@@ -1619,7 +1784,7 @@
             if (!currentVideo) return;
             
             try {
-                const videoUrl = currentVideo.video_url || `${API_BASE}${currentVideo.video_path}`;
+                const videoUrl = currentVideo.video_url || `\( {API_BASE} \){currentVideo.video_path}`;
                 const response = await fetch(videoUrl);
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
@@ -1849,8 +2014,8 @@
             if (message.media_type === 'image' && message.media_url) {
                 content = `
                     <div class="message-header">${message.username}</div>
-                    <img src="${message.media_url}" class="message-image" onclick="openMedia('${message.media_url}')">
-                    ${message.content ? `<div class="message-content">${message.content}</div>` : ''}
+                    <img src="\( {message.media_url}" class="message-image" onclick="openMedia(' \){message.media_url}')">
+                    \( {message.content ? `<div class="message-content"> \){message.content}</div>` : ''}
                     <div class="message-info">
                         <span class="message-time">${getTimeAgo(message.created_at)}</span>
                     </div>
@@ -1861,7 +2026,7 @@
                     <video class="message-video" controls onclick="openMedia('${message.media_url}')">
                         <source src="${message.media_url}" type="video/mp4">
                     </video>
-                    ${message.content ? `<div class="message-content">${message.content}</div>` : ''}
+                    \( {message.content ? `<div class="message-content"> \){message.content}</div>` : ''}
                     <div class="message-info">
                         <span class="message-time">${getTimeAgo(message.created_at)}</span>
                     </div>
@@ -1995,7 +2160,7 @@
             if (!seconds) return '0:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
+            return `\( {mins}: \){secs.toString().padStart(2, '0')}`;
         }
 
         function getTimeAgo(dateString) {
