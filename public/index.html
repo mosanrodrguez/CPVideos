@@ -582,523 +582,539 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        // Variables globales
-        let videos = [];
-        let selectedFile = null;
-        let uploadInProgress = false;
-        let uploadStartTime = null;
-        let currentUploadXHR = null;
-        let socket = null;
+<script>
+    // ==================== VARIABLES GLOBALES ====================
+    let videos = [];
+    let selectedFile = null;
+    let uploadInProgress = false;
+    let uploadStartTime = null;
+    let currentUploadXHR = null;
+    let socket = null;
+
+    // ==================== ELEMENTOS DEL DOM ====================
+    const mainScreen = document.getElementById('main-screen');
+    const uploadScreen = document.getElementById('upload-screen');
+    const playerScreen = document.getElementById('player-screen');
+    const videoGrid = document.getElementById('video-grid');
+    
+    // Botones de navegación
+    const uploadBtn = document.getElementById('upload-btn');
+    const backFromUploadBtn = document.getElementById('back-from-upload-btn');
+    const closePlayerBtn = document.getElementById('close-player-btn');
+    
+    // Elementos de subida
+    const videoInput = document.getElementById('video-input');
+    const selectVideoBtn = document.getElementById('select-video-btn');
+    const uploadArea = document.getElementById('upload-area');
+    const uploadDetails = document.getElementById('upload-details');
+    const uploadTitle = document.getElementById('upload-title');
+    const cancelUploadBtn = document.getElementById('cancel-upload-btn');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressText = document.getElementById('progress-text');
+    const uploadSpeed = document.getElementById('upload-speed');
+    
+    // Elementos de reproducción
+    const videoPlayer = document.getElementById('video-player');
+    const videoPlayerTitle = document.getElementById('video-player-title');
+    const playerTitle = document.getElementById('player-title');
+    const videoDuration = document.getElementById('video-duration');
+    const videoUploadDate = document.getElementById('video-upload-date');
+    const videoViews = document.getElementById('video-views');
+    const downloadBtn = document.getElementById('download-btn');
+
+    // ==================== FUNCIONES PRINCIPALES ====================
+
+    // Función para cambiar entre pantallas
+    function switchScreen(screenName) {
+        console.log('🖥️  Cambiando a pantalla:', screenName);
         
-        // Elementos del DOM
-        const mainScreen = document.getElementById('main-screen');
-        const uploadScreen = document.getElementById('upload-screen');
-        const playerScreen = document.getElementById('player-screen');
-        const videoGrid = document.getElementById('video-grid');
+        // Ocultar todas las pantallas
+        mainScreen.classList.remove('active');
+        uploadScreen.classList.remove('active');
+        playerScreen.classList.remove('active');
         
-        // Botones de navegación
-        const uploadBtn = document.getElementById('upload-btn');
-        const backFromUploadBtn = document.getElementById('back-from-upload-btn');
-        const closePlayerBtn = document.getElementById('close-player-btn');
-        
-        // Elementos de subida
-        const videoInput = document.getElementById('video-input');
-        const selectVideoBtn = document.getElementById('select-video-btn');
-        const uploadArea = document.getElementById('upload-area');
-        const uploadDetails = document.getElementById('upload-details');
-        const uploadTitle = document.getElementById('upload-title');
-        const cancelUploadBtn = document.getElementById('cancel-upload-btn');
-        const uploadProgress = document.getElementById('upload-progress');
-        const progressText = document.getElementById('progress-text');
-        const uploadSpeed = document.getElementById('upload-speed');
-        
-        // Elementos de reproducción
-        const videoPlayer = document.getElementById('video-player');
-        const videoPlayerTitle = document.getElementById('video-player-title');
-        const playerTitle = document.getElementById('player-title');
-        const videoDuration = document.getElementById('video-duration');
-        const videoUploadDate = document.getElementById('video-upload-date');
-        const videoViews = document.getElementById('video-views');
-        const downloadBtn = document.getElementById('download-btn');
-        
-        // ==================== FUNCIONES PRINCIPALES ====================
-        
-        // Función para cambiar entre pantallas
-        function switchScreen(screenName) {
-            console.log('Cambiando a pantalla:', screenName);
+        // Mostrar la pantalla solicitada
+        if (screenName === 'main') {
+            mainScreen.classList.add('active');
+            resetUploadForm();
+            loadVideos();
+        } else if (screenName === 'upload') {
+            uploadScreen.classList.add('active');
+        } else if (screenName === 'player') {
+            playerScreen.classList.add('active');
+        }
+    }
+
+    // Cargar videos desde el servidor
+    async function loadVideos() {
+        try {
+            console.log('📥 Cargando videos...');
+            const response = await fetch('/api/videos');
             
-            // Ocultar todas las pantallas
-            mainScreen.classList.remove('active');
-            uploadScreen.classList.remove('active');
-            playerScreen.classList.remove('active');
-            
-            // Mostrar la pantalla seleccionada
-            if (screenName === 'main') {
-                mainScreen.classList.add('active');
-                resetUploadForm();
-                loadVideos();
-            } else if (screenName === 'upload') {
-                uploadScreen.classList.add('active');
-            } else if (screenName === 'player') {
-                playerScreen.classList.add('active');
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}`);
             }
+            
+            videos = await response.json();
+            console.log(`✅ ${videos.length} videos cargados`);
+            renderVideoGrid();
+        } catch (error) {
+            console.error('❌ Error cargando videos:', error);
+            showNotification('Error al cargar videos', 'error');
+            videoGrid.innerHTML = `
+                <div class="video-placeholder" style="grid-column: 1 / -1; text-align: center; padding: 4rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
+                    <p>Error al cargar los videos</p>
+                    <button onclick="loadVideos()" class="upload-button" style="margin-top: 1rem;">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                </div>
+            `;
+        }
+    }
+
+    // Renderizar la cuadrícula de videos
+    function renderVideoGrid() {
+        console.log('🎨 Renderizando', videos.length, 'videos');
+        
+        if (!videos || videos.length === 0) {
+            videoGrid.innerHTML = `
+                <div class="video-placeholder" style="grid-column: 1 / -1; text-align: center; padding: 4rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
+                    <p>No hay videos disponibles</p>
+                    <p>¡Sube el primero tocando el botón "Subir Video"!</p>
+                </div>
+            `;
+            return;
         }
         
-        // Cargar videos desde el servidor
-        async function loadVideos() {
-            try {
-                console.log('Cargando videos...');
-                const response = await fetch('/api/videos');
-                
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-                
-                videos = await response.json();
-                console.log('Videos cargados:', videos.length);
-                renderVideoGrid();
-            } catch (error) {
-                console.error('Error cargando videos:', error);
-                showNotification('Error al cargar videos', 'error');
-                videoGrid.innerHTML = `
-                    <div class="video-placeholder" style="grid-column: 1 / -1; text-align: center; padding: 4rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
-                        <p>Error al cargar los videos</p>
-                        <button onclick="loadVideos()" class="upload-button" style="margin-top: 1rem;">
-                            <i class="fas fa-redo"></i> Reintentar
-                        </button>
-                    </div>
-                `;
-            }
-        }
-        
-        // Renderizar la cuadrícula de videos
-        function renderVideoGrid() {
-            console.log('Renderizando', videos.length, 'videos');
-            
-            if (videos.length === 0) {
-                videoGrid.innerHTML = `
-                    <div class="video-placeholder" style="grid-column: 1 / -1; text-align: center; padding: 4rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
-                        <p>No hay videos disponibles</p>
-                        <p>¡Sube el primero tocando el botón "Subir Video"!</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            videoGrid.innerHTML = videos.map(video => `
-                <div class="video-card" data-id="${video.id}">
-                    <div class="video-thumbnail">
-                        <img src="${video.thumbnail || 'https://placehold.co/400x225/d32f2f/000000?text=Video'}" 
-                             alt="${video.title}"
-                             onerror="this.src='https://placehold.co/400x225/d32f2f/000000?text=Thumbnail'">
-                        <span class="video-duration">${video.duration || '0:00'}</span>
-                    </div>
-                    <div class="video-info">
-                        <h3>${video.title || 'Video sin título'}</h3>
-                        <div class="video-meta">
-                            <span>${video.size || '0 MB'}</span>
-                            <span>${formatDate(video.uploaded_at)}</span>
-                        </div>
+        videoGrid.innerHTML = videos.map(video => `
+            <div class="video-card" data-id="${video.id}">
+                <div class="video-thumbnail">
+                    <img src="${video.thumbnail || 'https://placehold.co/400x225/d32f2f/ffffff?text=Video'}" 
+                         alt="${video.title}"
+                         onerror="this.src='https://placehold.co/400x225/d32f2f/ffffff?text=Thumbnail'">
+                    <span class="video-duration">${video.duration || '0:00'}</span>
+                </div>
+                <div class="video-info">
+                    <h3>${video.title || 'Video sin título'}</h3>
+                    <div class="video-meta">
+                        <span>${video.size || '0 MB'}</span>
+                        <span>${formatDate(video.uploaded_at)}</span>
                     </div>
                 </div>
-            `).join('');
-            
-            // Agregar event listeners a los videos
-            document.querySelectorAll('.video-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const videoId = this.getAttribute('data-id');
-                    openVideoPlayer(videoId);
-                });
+            </div>
+        `).join('');
+        
+        // Agregar event listeners a los videos
+        document.querySelectorAll('.video-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const videoId = this.getAttribute('data-id');
+                openVideoPlayer(videoId);
             });
+        });
+    }
+
+    // Abrir reproductor de video - ✅ CORREGIDO
+    async function openVideoPlayer(videoId) {
+        try {
+            console.log('▶️  Abriendo video ID:', videoId);
+            const response = await fetch(`/api/videos/${videoId}`);
+            
+            if (!response.ok) {
+                throw new Error('Video no encontrado');
+            }
+            
+            const video = await response.json();
+            
+            // ✅ CORRECCIÓN CRÍTICA: Usar /uploads/ en lugar de video.url
+            videoPlayer.src = `/uploads/${video.filename}`;
+            videoPlayerTitle.textContent = video.title;
+            playerTitle.textContent = `Reproduciendo: ${video.title}`;
+            
+            // Configurar metadatos
+            videoDuration.innerHTML = `<i class="fas fa-clock"></i> ${video.duration || '0:00'}`;
+            videoUploadDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(video.uploaded_at)}`;
+            videoViews.innerHTML = `<i class="fas fa-eye"></i> ${video.views || 0} vistas`;
+            
+            // Configurar botón de descarga
+            downloadBtn.onclick = () => {
+                window.open(`/api/videos/${videoId}/download`, '_blank');
+            };
+            
+            // Cambiar a pantalla de reproducción
+            switchScreen('player');
+            
+        } catch (error) {
+            console.error('❌ Error abriendo video:', error);
+            showNotification('Error al cargar el video', 'error');
+        }
+    }
+
+    // ==================== FUNCIONES DE SUBIDA ====================
+
+    // Manejar selección de video
+    function handleVideoSelect(file) {
+        console.log('📄 Video seleccionado:', file.name);
+        
+        // Validar que sea un video
+        if (!file.type.startsWith('video/')) {
+            showNotification('Por favor selecciona un archivo de video', 'error');
+            return;
         }
         
-        // Abrir reproductor de video
-        async function openVideoPlayer(videoId) {
-            try {
-                console.log('Abriendo video ID:', videoId);
-                const response = await fetch(`/api/videos/${videoId}`);
-                
-                if (!response.ok) {
-                    throw new Error('Video no encontrado');
-                }
-                
-                const video = await response.json();
-                
-                // Configurar el reproductor
-                videoPlayer.src = video.url;
-                videoPlayerTitle.textContent = video.title;
-                playerTitle.textContent = `Reproduciendo: ${video.title}`;
-                
-                // Configurar metadatos
-                videoDuration.innerHTML = `<i class="fas fa-clock"></i> ${video.duration || '0:00'}`;
-                videoUploadDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${formatDate(video.uploaded_at)}`;
-                videoViews.innerHTML = `<i class="fas fa-eye"></i> ${video.views || 0} vistas`;
-                
-                // Configurar botón de descarga
-                downloadBtn.onclick = () => {
-                    window.open(`/api/videos/${videoId}/download`, '_blank');
-                };
-                
-                // Cambiar a pantalla de reproducción
-                switchScreen('player');
-                
-            } catch (error) {
-                console.error('Error abriendo video:', error);
-                showNotification('Error al cargar el video', 'error');
-            }
+        // Validar tamaño (máximo 50MB para Render)
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxSize) {
+            showNotification('El video es demasiado grande. Máximo 50MB.', 'error');
+            return;
         }
         
-        // ==================== FUNCIONES DE SUBIDA ====================
+        selectedFile = file;
         
-        // Manejar selección de video
-        function handleVideoSelect(file) {
-            console.log('Video seleccionado:', file.name);
-            
-            // Validar que sea un video
-            if (!file.type.startsWith('video/')) {
-                showNotification('Por favor selecciona un archivo de video', 'error');
-                return;
-            }
-            
-            // Validar tamaño (máximo 100MB)
-            const maxSize = 100 * 1024 * 1024; // 100MB
-            if (file.size > maxSize) {
-                showNotification('El video es demasiado grande. Máximo 100MB.', 'error');
-                return;
-            }
-            
-            selectedFile = file;
-            
-            // Mostrar detalles de subida
-            uploadDetails.style.display = 'block';
-            uploadTitle.textContent = `Subiendo: ${file.name}`;
-            
-            // Iniciar subida
-            uploadVideo(file);
+        // Mostrar detalles de subida
+        uploadDetails.style.display = 'block';
+        uploadTitle.textContent = `Subiendo: ${file.name}`;
+        
+        // Iniciar subida
+        uploadVideo(file);
+    }
+
+    // Subir video al servidor - ✅ CORREGIDO
+    function uploadVideo(file) {
+        if (uploadInProgress) {
+            showNotification('Ya hay una subida en progreso', 'error');
+            return;
         }
         
-        // Subir video al servidor
-        function uploadVideo(file) {
-            if (uploadInProgress) {
-                showNotification('Ya hay una subida en progreso', 'error');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('video', file);
-            
-            // Crear XMLHttpRequest para monitorear progreso
-            currentUploadXHR = new XMLHttpRequest();
-            uploadInProgress = true;
-            uploadStartTime = Date.now();
-            
-            // Monitorear progreso
-            currentUploadXHR.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    
-                    // Actualizar barra de progreso
-                    uploadProgress.style.width = `${percentComplete}%`;
-                    progressText.textContent = `${percentComplete}%`;
-                    
-                    // Calcular velocidad de subida
-                    const elapsedTime = (Date.now() - uploadStartTime) / 1000; // segundos
-                    const speed = e.loaded / elapsedTime; // bytes por segundo
-                    
-                    if (speed > 1024 * 1024) {
-                        uploadSpeed.textContent = `${(speed / (1024 * 1024)).toFixed(1)} MB/s`;
-                    } else if (speed > 1024) {
-                        uploadSpeed.textContent = `${(speed / 1024).toFixed(1)} KB/s`;
-                    } else {
-                        uploadSpeed.textContent = `${Math.round(speed)} B/s`;
-                    }
-                }
-            });
-            
-            // Manejar respuesta
-            currentUploadXHR.addEventListener('load', () => {
-                uploadInProgress = false;
+        const formData = new FormData();
+        formData.append('video', file);
+        
+        // Crear XMLHttpRequest para monitorear progreso
+        currentUploadXHR = new XMLHttpRequest();
+        uploadInProgress = true;
+        uploadStartTime = Date.now();
+        
+        // Monitorear progreso
+        currentUploadXHR.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = Math.round((e.loaded / e.total) * 100);
                 
-                if (currentUploadXHR.status === 200) {
-                    try {
-                        const response = JSON.parse(currentUploadXHR.responseText);
-                        console.log('Subida exitosa:', response);
-                        
-                        // Mostrar progreso completo
-                        uploadProgress.style.width = '100%';
-                        progressText.textContent = '100%';
-                        uploadSpeed.textContent = 'Completado';
-                        
-                        showNotification(`Video "${response.filename}" subido exitosamente`, 'success');
-                        
-                        // Esperar 2 segundos y volver a la pantalla principal
-                        setTimeout(() => {
-                            switchScreen('main');
-                        }, 2000);
-                        
-                    } catch (error) {
-                        console.error('Error parseando respuesta:', error);
-                        showNotification('Error procesando la respuesta del servidor', 'error');
-                    }
+                // Actualizar barra de progreso
+                uploadProgress.style.width = `${percentComplete}%`;
+                progressText.textContent = `${percentComplete}%`;
+                
+                // Calcular velocidad de subida
+                const elapsedTime = (Date.now() - uploadStartTime) / 1000; // segundos
+                const speed = e.loaded / elapsedTime; // bytes por segundo
+                
+                if (speed > 1024 * 1024) {
+                    uploadSpeed.textContent = `${(speed / (1024 * 1024)).toFixed(1)} MB/s`;
+                } else if (speed > 1024) {
+                    uploadSpeed.textContent = `${(speed / 1024).toFixed(1)} KB/s`;
                 } else {
-                    console.error('Error en subida:', currentUploadXHR.status, currentUploadXHR.statusText);
-                    showNotification(`Error subiendo el video: ${currentUploadXHR.statusText}`, 'error');
+                    uploadSpeed.textContent = `${Math.round(speed)} B/s`;
                 }
-            });
-            
-            // Manejar error
-            currentUploadXHR.addEventListener('error', () => {
-                uploadInProgress = false;
-                console.error('Error de conexión en subida');
-                showNotification('Error de conexión al subir el video', 'error');
-            });
-            
-            // Manejar cancelación
-            currentUploadXHR.addEventListener('abort', () => {
-                uploadInProgress = false;
-                console.log('Subida cancelada');
-                showNotification('Subida cancelada', 'error');
-            });
-            
-            // Iniciar subida
-            currentUploadXHR.open('POST', '/api/upload');
-            currentUploadXHR.send(formData);
-            
-            console.log('Subida iniciada para:', file.name);
-        }
-        
-        // Cancelar subida
-        function cancelUpload() {
-            if (uploadInProgress && currentUploadXHR) {
-                if (confirm('¿Estás seguro de que quieres cancelar la subida?')) {
-                    currentUploadXHR.abort();
-                    switchScreen('main');
-                }
-            } else {
-                switchScreen('main');
             }
-        }
-        
-        // Reiniciar formulario de subida
-        function resetUploadForm() {
-            selectedFile = null;
-            uploadInProgress = false;
-            uploadStartTime = null;
-            currentUploadXHR = null;
-            
-            if (videoInput) videoInput.value = '';
-            if (uploadDetails) uploadDetails.style.display = 'none';
-            if (uploadProgress) uploadProgress.style.width = '0%';
-            if (progressText) progressText.textContent = '0%';
-            if (uploadSpeed) uploadSpeed.textContent = '0 KB/s';
-            if (uploadTitle) uploadTitle.textContent = 'Preparando subida...';
-        }
-        
-        // ==================== WEB SOCKETS ====================
-        
-        function setupWebSocket() {
-            try {
-                socket = io();
-                
-                socket.on('connect', () => {
-                    console.log('Conectado al servidor WebSocket');
-                });
-                
-                socket.on('video-uploaded', (data) => {
-                    console.log('Nuevo video subido:', data);
-                    showNotification(`Nuevo video: "${data.title}"`, 'success');
-                    
-                    // Recargar videos si estamos en la pantalla principal
-                    if (mainScreen.classList.contains('active')) {
-                        loadVideos();
-                    }
-                });
-                
-                socket.on('video-processed', (data) => {
-                    console.log('Video procesado:', data);
-                    
-                    // Recargar videos para mostrar miniatura y duración
-                    if (mainScreen.classList.contains('active')) {
-                        loadVideos();
-                    }
-                });
-                
-                socket.on('disconnect', () => {
-                    console.log('Desconectado del servidor WebSocket');
-                });
-                
-            } catch (error) {
-                console.error('Error configurando WebSocket:', error);
-            }
-        }
-        
-        // ==================== FUNCIONES DE UTILIDAD ====================
-        
-        // Mostrar notificación
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
-                ${message}
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Eliminar después de 5 segundos
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => {
-                    if (notification.parentNode) {
-                        notification.parentNode.removeChild(notification);
-                    }
-                }, 300);
-            }, 5000);
-        }
-        
-        // Formatear fecha
-        function formatDate(dateString) {
-            if (!dateString) return 'Reciente';
-            
-            try {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diffMs = now - date;
-                const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Hoy';
-                if (diffDays === 1) return 'Ayer';
-                if (diffDays < 7) return `Hace ${diffDays} días`;
-                
-                return date.toLocaleDateString('es-ES', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-            } catch (error) {
-                return 'Reciente';
-            }
-        }
-        
-        // ==================== CONFIGURACIÓN DE EVENTOS ====================
-        
-        function setupEventListeners() {
-            console.log('Configurando event listeners...');
-            
-            // Botón de subir video
-            if (uploadBtn) {
-                uploadBtn.addEventListener('click', () => {
-                    console.log('Botón de subir video clickeado');
-                    switchScreen('upload');
-                });
-                console.log('Botón de subir configurado');
-            } else {
-                console.error('ERROR: Botón #upload-btn no encontrado');
-            }
-            
-            // Botón para volver desde subida
-            if (backFromUploadBtn) {
-                backFromUploadBtn.addEventListener('click', () => {
-                    console.log('Botón de volver clickeado');
-                    cancelUpload();
-                });
-            }
-            
-            // Botón para cerrar reproductor
-            if (closePlayerBtn) {
-                closePlayerBtn.addEventListener('click', () => {
-                    console.log('Cerrando reproductor');
-                    videoPlayer.pause();
-                    videoPlayer.src = '';
-                    switchScreen('main');
-                });
-            }
-            
-            // Botón para seleccionar video
-            if (selectVideoBtn) {
-                selectVideoBtn.addEventListener('click', () => {
-                    console.log('Botón de seleccionar video clickeado');
-                    videoInput.click();
-                });
-            }
-            
-            // Área de subida
-            if (uploadArea) {
-                uploadArea.addEventListener('click', () => {
-                    console.log('Área de subida clickeada');
-                    videoInput.click();
-                });
-                
-                // Drag & drop
-                uploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadArea.style.borderColor = 'var(--light-red)';
-                    uploadArea.style.backgroundColor = 'var(--medium-gray)';
-                });
-                
-                uploadArea.addEventListener('dragleave', () => {
-                    uploadArea.style.borderColor = 'var(--primary-red)';
-                    uploadArea.style.backgroundColor = 'var(--dark-gray)';
-                });
-                
-                uploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadArea.style.borderColor = 'var(--primary-red)';
-                    uploadArea.style.backgroundColor = 'var(--dark-gray)';
-                    
-                    if (e.dataTransfer.files.length > 0) {
-                        const file = e.dataTransfer.files[0];
-                        console.log('Archivo arrastrado:', file.name);
-                        handleVideoSelect(file);
-                    }
-                });
-            }
-            
-            // Input de archivo
-            if (videoInput) {
-                videoInput.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        const file = e.target.files[0];
-                        console.log('Archivo seleccionado:', file.name);
-                        handleVideoSelect(file);
-                    }
-                });
-            }
-            
-            // Botón de cancelar subida
-            if (cancelUploadBtn) {
-                cancelUploadBtn.addEventListener('click', cancelUpload);
-            }
-            
-            console.log('Event listeners configurados correctamente');
-        }
-        
-        // ==================== INICIALIZACIÓN ====================
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM completamente cargado');
-            
-            // Configurar eventos
-            setupEventListeners();
-            
-            // Configurar WebSocket
-            setupWebSocket();
-            
-            // Cargar videos iniciales
-            loadVideos();
-            
-            // Mostrar mensaje de bienvenida
-            setTimeout(() => {
-                console.log('Aplicación inicializada correctamente');
-            }, 500);
         });
         
-        // Manejar errores no capturados
-        window.onerror = function(msg, url, line) {
-            console.error('Error no capturado:', msg, 'en', url, 'línea', line);
-            return true;
-        };
-    </script>
-</body>
-</html>
+        // Manejar respuesta
+        currentUploadXHR.addEventListener('load', () => {
+            uploadInProgress = false;
+            
+            if (currentUploadXHR.status === 200) {
+                try {
+                    const response = JSON.parse(currentUploadXHR.responseText);
+                    console.log('✅ Subida exitosa:', response);
+                    
+                    // Mostrar progreso completo
+                    uploadProgress.style.width = '100%';
+                    progressText.textContent = '100%';
+                    uploadSpeed.textContent = '✅ Completado';
+                    
+                    showNotification(`🎉 Video "${response.title}" subido exitosamente`, 'success');
+                    
+                    // Esperar 1 segundo y volver a la pantalla principal
+                    setTimeout(() => {
+                        switchScreen('main');
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Error parseando respuesta:', error);
+                    showNotification('Error procesando la respuesta del servidor', 'error');
+                }
+            } else {
+                console.error('Error en subida:', currentUploadXHR.status, currentUploadXHR.statusText);
+                showNotification(`Error subiendo el video: ${currentUploadXHR.statusText}`, 'error');
+            }
+        });
+        
+        // Manejar error
+        currentUploadXHR.addEventListener('error', () => {
+            uploadInProgress = false;
+            console.error('Error de conexión en subida');
+            showNotification('🌐 Error de conexión al subir el video', 'error');
+        });
+        
+        // Manejar cancelación
+        currentUploadXHR.addEventListener('abort', () => {
+            uploadInProgress = false;
+            console.log('Subida cancelada');
+            showNotification('⏹️  Subida cancelada', 'error');
+        });
+        
+        // Iniciar subida
+        currentUploadXHR.open('POST', '/api/upload');
+        currentUploadXHR.send(formData);
+        
+        console.log('📤 Subida iniciada para:', file.name);
+    }
+
+    // Cancelar subida
+    function cancelUpload() {
+        if (uploadInProgress && currentUploadXHR) {
+            if (confirm('¿Estás seguro de que quieres cancelar la subida?')) {
+                currentUploadXHR.abort();
+                switchScreen('main');
+            }
+        } else {
+            switchScreen('main');
+        }
+    }
+
+    // Reiniciar formulario de subida
+    function resetUploadForm() {
+        selectedFile = null;
+        uploadInProgress = false;
+        uploadStartTime = null;
+        currentUploadXHR = null;
+        
+        if (videoInput) videoInput.value = '';
+        if (uploadDetails) uploadDetails.style.display = 'none';
+        if (uploadProgress) uploadProgress.style.width = '0%';
+        if (progressText) progressText.textContent = '0%';
+        if (uploadSpeed) uploadSpeed.textContent = '0 KB/s';
+        if (uploadTitle) uploadTitle.textContent = 'Preparando subida...';
+    }
+
+    // ==================== WEB SOCKETS ====================
+
+    function setupWebSocket() {
+        try {
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('✅ Conectado al servidor WebSocket');
+            });
+            
+            socket.on('video-uploaded', (data) => {
+                console.log('📥 Nuevo video subido:', data);
+                showNotification(`🎬 Nuevo video: "${data.title}"`, 'success');
+                loadVideos(); // Recargar automáticamente
+            });
+            
+            socket.on('video-processed', (data) => {
+                console.log('✅ Video procesado:', data);
+                showNotification(`🖼️  Video procesado: miniatura generada`, 'success');
+                loadVideos(); // Recargar para mostrar miniatura
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('🔌 Desconectado del servidor WebSocket');
+            });
+            
+        } catch (error) {
+            console.error('❌ Error configurando WebSocket:', error);
+        }
+    }
+
+    // ==================== FUNCIONES DE UTILIDAD ====================
+
+    // Mostrar notificación
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+            ${message}
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Eliminar después de 5 segundos
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+    }
+
+    // Formatear fecha
+    function formatDate(dateString) {
+        if (!dateString) return 'Reciente';
+        
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 0) return 'Hoy';
+            if (diffDays === 1) return 'Ayer';
+            if (diffDays < 7) return `Hace ${diffDays} días`;
+            
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        } catch (error) {
+            return 'Reciente';
+        }
+    }
+
+    // ==================== CONFIGURACIÓN DE EVENTOS ====================
+
+    function setupEventListeners() {
+        console.log('⚙️  Configurando event listeners...');
+        
+        // Botón de subir video
+        if (uploadBtn) {
+            uploadBtn.addEventListener('click', () => {
+                console.log('🔼 Botón de subir video clickeado');
+                switchScreen('upload');
+            });
+            console.log('✅ Botón de subir configurado');
+        } else {
+            console.error('❌ ERROR: Botón #upload-btn no encontrado');
+        }
+        
+        // Botón para volver desde subida
+        if (backFromUploadBtn) {
+            backFromUploadBtn.addEventListener('click', () => {
+                console.log('↩️  Botón de volver clickeado');
+                cancelUpload();
+            });
+        }
+        
+        // Botón para cerrar reproductor
+        if (closePlayerBtn) {
+            closePlayerBtn.addEventListener('click', () => {
+                console.log('❌ Cerrando reproductor');
+                videoPlayer.pause();
+                videoPlayer.src = '';
+                switchScreen('main');
+            });
+        }
+        
+        // Botón para seleccionar video
+        if (selectVideoBtn) {
+            selectVideoBtn.addEventListener('click', () => {
+                console.log('📁 Botón de seleccionar video clickeado');
+                videoInput.click();
+            });
+        }
+        
+        // Área de subida
+        if (uploadArea) {
+            uploadArea.addEventListener('click', () => {
+                console.log('📦 Área de subida clickeada');
+                videoInput.click();
+            });
+            
+            // Drag & drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--light-red)';
+                uploadArea.style.backgroundColor = 'var(--medium-gray)';
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.style.borderColor = 'var(--primary-red)';
+                uploadArea.style.backgroundColor = 'var(--dark-gray)';
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.style.borderColor = 'var(--primary-red)';
+                uploadArea.style.backgroundColor = 'var(--dark-gray)';
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    console.log('📂 Archivo arrastrado:', file.name);
+                    handleVideoSelect(file);
+                }
+            });
+        }
+        
+        // Input de archivo
+        if (videoInput) {
+            videoInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    console.log('📄 Archivo seleccionado:', file.name);
+                    handleVideoSelect(file);
+                }
+            });
+        }
+        
+        // Botón de cancelar subida
+        if (cancelUploadBtn) {
+            cancelUploadBtn.addEventListener('click', cancelUpload);
+        }
+        
+        console.log('✅ Event listeners configurados correctamente');
+    }
+
+    // ==================== DIAGNÓSTICO INICIAL ====================
+    function diagnosticCheck() {
+        console.log('🔍 DIAGNÓSTICO INICIAL');
+        console.log('🌐 URL actual:', window.location.href);
+        console.log('📋 Elementos encontrados:');
+        
+        const elements = [
+            'main-screen', 'upload-screen', 'player-screen',
+            'upload-btn', 'back-from-upload-btn', 'close-player-btn',
+            'video-grid', 'video-input'
+        ];
+        
+        elements.forEach(id => {
+            const el = document.getElementById(id);
+            console.log(`  ${id}: ${el ? '✅' : '❌'} ${el ? 'OK' : 'NO ENCONTRADO'}`);
+        });
+        
+        // Probar conexión con la API
+        fetch('/api/health')
+            .then(res => res.json())
+            .then(data => console.log('✅ API Health:', data))
+            .catch(err => console.error('❌ API no responde:', err));
+    }
+
+    // ==================== INICIALIZACIÓN ====================
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 CPVideos - Inicializando...');
+        
+        // Ejecutar diagnóstico
+        diagnosticCheck();
+        
+        // Configurar eventos
+        setupEventListeners();
+        
+        // Configurar WebSocket
+        setupWebSocket();
+        
+        // Cargar videos iniciales
+        loadVideos();
+        
+        console.log('✅ Aplicación inicializada correctamente');
+    });
+
+    // Manejar errores no capturados
+    window.onerror = function(msg, url, line) {
+        console.error('🔥 Error no capturado:', msg, 'en', url, 'línea', line);
+        showNotification('Error en la aplicación', 'error');
+        return true;
+    };
+</script>
