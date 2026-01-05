@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
+const jwt = require('jsonwebtoken');  // <-- AÑADE ESTA LÍNEA
 const { spawn } = require('child_process');
 const WebSocket = require('ws');
 
