@@ -19,45 +19,70 @@ const io = socketIo(server, {
 
 const PORT = process.env.PORT || 10000;
 
-// Configuración para Render
-const DATA_DIR = process.env.NODE_ENV === 'production' 
-  ? '/data'  // En Render, usa el disco persistente
-  : path.join(__dirname, 'data');
+// 📁 DIRECTORIOS TEMPORALES DENTRO DEL PROYECTO
+const PROJECT_DIR = __dirname;
+const PUBLIC_DIR = path.join(PROJECT_DIR, 'public');
+const UPLOADS_DIR = path.join(PROJECT_DIR, 'temp_uploads');
+const THUMBS_DIR = path.join(PROJECT_DIR, 'temp_thumbnails');
+const DB_PATH = path.join(PROJECT_DIR, 'temp_videos.db');
 
-const UPLOADS_DIR = path.join(DATA_DIR, 'uploads');
-const THUMBS_DIR = path.join(DATA_DIR, 'thumbnails');
-const DB_PATH = path.join(DATA_DIR, 'videos.db');
+console.log('='.repeat(60));
+console.log('🚀 PLATAFORMA DE VIDEOS - INICIANDO');
+console.log('='.repeat(60));
+console.log('📂 Directorio del proyecto:', PROJECT_DIR);
+console.log('🌐 Directorio público:', PUBLIC_DIR);
+console.log('💾 Uploads temporales:', UPLOADS_DIR);
+console.log('🖼️  Thumbnails temporales:', THUMBS_DIR);
+console.log('🗄️  Base de datos:', DB_PATH);
+console.log('🔌 Puerto:', PORT);
+console.log('='.repeat(60));
 
-// Asegurar que los directorios existen
-fs.ensureDirSync(DATA_DIR);
-fs.ensureDirSync(UPLOADS_DIR);
-fs.ensureDirSync(THUMBS_DIR);
+// Verificar que existe la carpeta public/
+if (!fs.existsSync(PUBLIC_DIR)) {
+  console.log('⚠️  Creando carpeta public/...');
+  fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+}
+
+// Crear directorios temporales si no existen
+[UPLOADS_DIR, THUMBS_DIR].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`✅ Directorio creado: ${dir}`);
+    } catch (error) {
+      console.error(`❌ Error creando ${dir}:`, error.message);
+    }
+  }
+});
 
 // Inicializar base de datos SQLite
 const db = new sqlite3.Database(DB_PATH, (err) => {
   if (err) {
-    console.error('Error abriendo base de datos:', err);
+    console.error('❌ Error abriendo base de datos:', err.message);
   } else {
-    console.log('✅ Conectado a SQLite:', DB_PATH);
-    
-    // Crear tablas
-    db.run(`
-      CREATE TABLE IF NOT EXISTS videos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        filename TEXT NOT NULL UNIQUE,
-        original_name TEXT NOT NULL,
-        filepath TEXT NOT NULL,
-        thumbnail_path TEXT,
-        duration INTEGER DEFAULT 0,
-        size INTEGER NOT NULL,
-        views INTEGER DEFAULT 0,
-        uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `, (err) => {
-      if (err) console.error('Error creando tabla videos:', err);
-      else console.log('✅ Tabla videos creada/verificada');
-    });
+    console.log('✅ Base de datos SQLite conectada');
+  }
+});
+
+// Crear tabla de videos
+db.run(`
+  CREATE TABLE IF NOT EXISTS videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    filepath TEXT NOT NULL,
+    thumbnail_path TEXT,
+    duration INTEGER DEFAULT 0,
+    size INTEGER NOT NULL,
+    views INTEGER DEFAULT 0,
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )
+`, (err) => {
+  if (err) {
+    console.error('❌ Error creando tabla videos:', err.message);
+  } else {
+    console.log('✅ Tabla videos lista');
   }
 });
 
@@ -67,60 +92,59 @@ const storage = multer.diskStorage({
     cb(null, UPLOADS_DIR);
   },
   filename: (req, file, cb) => {
-    const uniqueName = `video_${Date.now()}_${Math.random().toString(36).substring(7)}${path.extname(file.originalname)}`;
+    // Nombre seguro y único
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const uniqueName = `video_${Date.now()}_${Math.random().toString(36).substring(2, 9)}_${safeName}`;
     cb(null, uniqueName);
   }
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
-  fileFilter: (req, file, cb) => {
-    const allowedMimes = [
-      'video/mp4',
-      'video/webm',
-      'video/ogg',
-      'video/quicktime',
-      'video/x-msvideo',
-      'video/x-matroska'
-    ];
-    
-    if (allowedMimes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Solo se permiten archivos de video.'));
-    }
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB
+    files: 1
   }
 });
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Servir archivos estáticos
 app.use('/uploads', express.static(UPLOADS_DIR));
 app.use('/thumbnails', express.static(THUMBS_DIR));
+app.use(express.static(PUBLIC_DIR)); // Servir archivos estáticos de public/
 
 // Función para procesar video con FFmpeg
 function processVideoWithFFmpeg(videoPath, videoId) {
-  return new Promise((resolve, reject) => {
-    // Extraer duración
+  return new Promise((resolve) => {
+    console.log(`🔄 Procesando video ID ${videoId}...`);
+    
+    // Verificar si el archivo existe
+    if (!fs.existsSync(videoPath)) {
+      console.log(`⚠️  Archivo no encontrado: ${videoPath}`);
+      resolve({ duration: 0, thumbnailPath: null });
+      return;
+    }
+    
+    // Extraer duración y miniatura
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
       if (err) {
-        console.error('Error en ffprobe:', err);
-        // Si falla, usar valores por defecto
+        console.log('⚠️  No se pudo analizar video:', err.message);
         resolve({ duration: 0, thumbnailPath: null });
         return;
       }
       
       const duration = Math.floor(metadata.format.duration || 0);
-      const thumbnailFilename = `${videoId}.jpg`;
+      const thumbnailFilename = `thumb_${videoId}.jpg`;
       const thumbnailPath = path.join(THUMBS_DIR, thumbnailFilename);
       
-      console.log(`📹 Procesando video ID ${videoId}: duración=${duration}s`);
-      
-      // Extraer miniatura en el segundo 2 (5% puede ser muy temprano)
+      // Generar miniatura
       ffmpeg(videoPath)
         .screenshots({
-          timestamps: ['2'],
+          timestamps: ['00:00:01'],
           filename: thumbnailFilename,
           folder: THUMBS_DIR,
           size: '400x225'
@@ -130,15 +154,14 @@ function processVideoWithFFmpeg(videoPath, videoId) {
           resolve({ duration, thumbnailPath });
         })
         .on('error', (err) => {
-          console.error('Error generando miniatura:', err);
-          // Aún resolvemos aunque falle la miniatura
+          console.log('⚠️  Error generando miniatura:', err.message);
           resolve({ duration, thumbnailPath: null });
         });
     });
   });
 }
 
-// Helper para consultas con promesas
+// Helper para consultas SQL
 function dbAll(sql, params = []) {
   return new Promise((resolve, reject) => {
     db.all(sql, params, (err, rows) => {
@@ -166,6 +189,29 @@ function dbGet(sql, params = []) {
   });
 }
 
+// ========== RUTAS DE LA API ==========
+
+// Ruta raíz: servir index.html
+app.get('/', (req, res) => {
+  const indexPath = path.join(PUBLIC_DIR, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>Video Platform</title></head>
+      <body>
+        <h1>Video Platform - Servidor Funcionando</h1>
+        <p>El servidor está corriendo en el puerto ${PORT}</p>
+        <p>Pero el archivo index.html no se encontró en la carpeta public/</p>
+        <p><a href="/api/videos">Ver API de videos</a></p>
+      </body>
+      </html>
+    `);
+  }
+});
+
 // API: Obtener todos los videos
 app.get('/api/videos', async (req, res) => {
   try {
@@ -176,17 +222,20 @@ app.get('/api/videos', async (req, res) => {
       title: video.title,
       filename: video.filename,
       url: `/uploads/${video.filename}`,
-      thumbnail: video.thumbnail_path ? `/thumbnails/${path.basename(video.thumbnail_path)}` : null,
+      thumbnail: video.thumbnail_path 
+        ? `/thumbnails/${path.basename(video.thumbnail_path)}`
+        : `https://via.placeholder.com/400x225/d32f2f/ffffff?text=${encodeURIComponent(video.title.substring(0, 20))}`,
       duration: formatDuration(video.duration),
       size: formatFileSize(video.size),
-      views: video.views,
+      views: video.views || 0,
       uploaded_at: video.uploaded_at
     }));
     
+    console.log(`📊 Enviando ${formattedVideos.length} videos`);
     res.json(formattedVideos);
   } catch (error) {
     console.error('Error obteniendo videos:', error);
-    res.status(500).json({ error: 'Error del servidor' });
+    res.status(500).json({ error: 'Error interno' });
   }
 });
 
@@ -197,74 +246,55 @@ app.post('/api/upload', upload.single('video'), async (req, res) => {
       return res.status(400).json({ error: 'No se recibió archivo' });
     }
     
-    // Usar nombre del archivo como título (sin extensión)
+    console.log(`📤 Subiendo video: ${req.file.originalname} (${formatFileSize(req.file.size)})`);
+    
+    // Título = nombre del archivo sin extensión
     const title = req.file.originalname.replace(/\.[^/.]+$/, '');
-    const videoPath = req.file.path;
     
-    console.log(`⬆️  Subiendo video: ${title} (${formatFileSize(req.file.size)})`);
-    
-    // Insertar video en la base de datos
+    // Guardar en base de datos
     const result = await dbRun(
       `INSERT INTO videos (title, filename, original_name, filepath, size) 
        VALUES (?, ?, ?, ?, ?)`,
-      [title, req.file.filename, req.file.originalname, videoPath, req.file.size]
+      [title, req.file.filename, req.file.originalname, req.file.path, req.file.size]
     );
     
     const videoId = result.lastID;
     
-    // Notificar subida inmediata vía WebSocket
+    // Notificar vía WebSocket
     io.emit('video-uploaded', {
       id: videoId,
       title: title,
-      size: formatFileSize(req.file.size),
-      uploaded_at: new Date().toISOString()
+      size: formatFileSize(req.file.size)
     });
     
-    // Procesar con FFmpeg en segundo plano (no bloquear respuesta)
+    // Procesar con FFmpeg en segundo plano
     setTimeout(async () => {
       try {
-        const { duration, thumbnailPath } = await processVideoWithFFmpeg(videoPath, videoId);
+        const { duration, thumbnailPath } = await processVideoWithFFmpeg(req.file.path, videoId);
         
-        // Actualizar video con duración y miniatura
         await dbRun(
           'UPDATE videos SET duration = ?, thumbnail_path = ? WHERE id = ?',
           [duration, thumbnailPath, videoId]
         );
         
-        console.log(`✅ Video ${videoId} procesado: ${duration}s`);
-        
-        // Notificar que el video fue procesado
-        io.emit('video-processed', {
-          videoId,
-          duration,
-          thumbnail: thumbnailPath ? `/thumbnails/${videoId}.jpg` : null
-        });
-        
+        console.log(`✅ Video ${videoId} procesado (${duration}s)`);
+        io.emit('video-processed', { videoId, duration });
       } catch (error) {
-        console.error('Error procesando video en segundo plano:', error);
+        console.error('Error procesando video:', error);
       }
-    }, 1000);
+    }, 500);
     
     res.json({
       success: true,
-      message: 'Video subido exitosamente',
       videoId: videoId,
       filename: req.file.filename,
-      title: title
+      title: title,
+      size: formatFileSize(req.file.size)
     });
     
   } catch (error) {
     console.error('Error subiendo video:', error);
-    
-    // Si hay error, eliminar el archivo subido
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
-    
-    res.status(500).json({ 
-      error: 'Error al subir el video',
-      details: error.message 
-    });
+    res.status(500).json({ error: error.message });
   }
 });
 
@@ -285,16 +315,17 @@ app.get('/api/videos/:id', async (req, res) => {
       title: video.title,
       filename: video.filename,
       url: `/uploads/${video.filename}`,
-      thumbnail: video.thumbnail_path ? `/thumbnails/${path.basename(video.thumbnail_path)}` : null,
+      thumbnail: video.thumbnail_path 
+        ? `/thumbnails/${path.basename(video.thumbnail_path)}`
+        : `https://via.placeholder.com/400x225/d32f2f/ffffff?text=Video`,
       duration: formatDuration(video.duration),
       size: formatFileSize(video.size),
-      views: video.views + 1,
-      uploaded_at: video.uploaded_at,
-      original_name: video.original_name
+      views: (video.views || 0) + 1,
+      uploaded_at: video.uploaded_at
     });
   } catch (error) {
     console.error('Error obteniendo video:', error);
-    res.status(500).json({ error: 'Error del servidor' });
+    res.status(500).json({ error: 'Error interno' });
   }
 });
 
@@ -307,44 +338,34 @@ app.get('/api/videos/:id/download', async (req, res) => {
       return res.status(404).json({ error: 'Video no encontrado' });
     }
     
-    if (!fs.existsSync(video.filepath)) {
+    const filePath = path.join(UPLOADS_DIR, video.filename);
+    
+    if (!fs.existsSync(filePath)) {
       return res.status(404).json({ error: 'Archivo no encontrado' });
     }
     
-    // Enviar archivo para descarga
-    res.download(video.filepath, video.original_name, (err) => {
-      if (err) {
-        console.error('Error descargando video:', err);
-        res.status(500).json({ error: 'Error descargando archivo' });
-      }
-    });
-    
+    res.download(filePath, video.original_name);
   } catch (error) {
-    console.error('Error en descarga:', error);
-    res.status(500).json({ error: 'Error del servidor' });
+    console.error('Error descargando video:', error);
+    res.status(500).json({ error: 'Error interno' });
   }
 });
 
-// API: Servir archivo HTML
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    server: 'Video Platform',
+    port: PORT,
+    time: new Date().toISOString(),
+    uploads: UPLOADS_DIR,
+    public: PUBLIC_DIR
+  });
 });
-
-// Servir archivos estáticos
-app.use(express.static('public'));
 
 // WebSocket para tiempo real
 io.on('connection', (socket) => {
   console.log('🔌 Cliente conectado:', socket.id);
-  
-  socket.on('upload-progress', (data) => {
-    // Broadcast a otros clientes
-    socket.broadcast.emit('upload-progress', data);
-  });
-  
-  socket.on('video-playing', (videoId) => {
-    io.emit('video-playing', { videoId, time: new Date().toISOString() });
-  });
   
   socket.on('disconnect', () => {
     console.log('🔌 Cliente desconectado:', socket.id);
@@ -369,25 +390,22 @@ function formatFileSize(bytes) {
 
 // Iniciar servidor
 server.listen(PORT, () => {
-  console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
-  console.log(`📁 Videos: ${UPLOADS_DIR}`);
-  console.log(`🖼️  Miniaturas: ${THUMBS_DIR}`);
-  console.log(`🗄️  Base de datos: ${DB_PATH}`);
-  
-  // Verificar que FFmpeg esté disponible
-  ffmpeg.getAvailableCodecs((err, codecs) => {
-    if (err) {
-      console.error('❌ FFmpeg no disponible. Las miniaturas no se generarán.');
-      console.error('Error FFmpeg:', err.message);
-    } else {
-      console.log('✅ FFmpeg disponible para procesamiento de videos');
-    }
-  });
+  console.log('='.repeat(60));
+  console.log(`✅ SERVIDOR ACTIVO: http://localhost:${PORT}`);
+  console.log('='.repeat(60));
+  console.log('📂 Estructura de archivos:');
+  console.log(`   public/: ${fs.existsSync(PUBLIC_DIR) ? '✅' : '❌'}`);
+  console.log(`   temp_uploads/: ${fs.existsSync(UPLOADS_DIR) ? '✅' : '❌'}`);
+  console.log(`   temp_thumbnails/: ${fs.existsSync(THUMBS_DIR) ? '✅' : '❌'}`);
+  console.log(`   temp_videos.db: ${fs.existsSync(DB_PATH) ? '✅' : '❌'}`);
+  console.log('='.repeat(60));
+  console.log('🚀 Listo para recibir conexiones');
+  console.log('='.repeat(60));
 });
 
-// Manejar cierre limpio
+// Manejar cierre
 process.on('SIGINT', () => {
-  console.log('Apagando servidor...');
+  console.log('🛑 Apagando servidor...');
   db.close();
   process.exit(0);
 });
