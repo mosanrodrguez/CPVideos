@@ -9,9 +9,9 @@
     <style>
         :root {
             --primary-red: #d32f2f; --dark-red: #b71c1c; --light-red: #ff6659;
-            --black: #121212; --dark-gray: #1e1e1e; --medium-gray: #2d2d2d;
+            --black: #121212; --dark-gray: #1a1a1a; --medium-gray: #2a2a2a;
             --light-gray: #e0e0e0; --white: #ffffff;
-            --shadow: 0 4px 8px rgba(0,0,0,0.5); --border-radius: 8px;
+            --shadow: 0 3px 10px rgba(0,0,0,0.5); --border-radius: 8px;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,346 +19,520 @@
             font-family: 'Poppins', sans-serif; 
             background: var(--black); 
             color: var(--white);
-            font-size: 16px;
+            min-height: 100vh;
         }
         
-        /* Pantallas */
-        .screen { display: none; min-height: 100vh; }
-        .screen.active { display: block; }
+        /* ========== PANTALLA PRINCIPAL ========== */
+        .main-screen.active { 
+            display: block; 
+            min-height: 100vh;
+        }
         
-        /* Header principal - AGRANDADO 20% */
+        .main-screen { display: none; }
+        
+        /* Header - TEXTO REDUCIDO */
         .main-header { 
             background: var(--dark-gray); 
-            padding: 1.2rem 2rem; 
+            padding: 12px 20px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            border-bottom: 3px solid var(--primary-red); 
-            position: sticky; 
-            top: 0; 
-            z-index: 1000; 
+            border-bottom: 2px solid var(--primary-red);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
         
-        .main-header h1 { 
-            font-size: 1.8rem; 
-            color: var(--primary-red); 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        .upload-button { 
+        .logo-icon {
+            color: var(--primary-red);
+            font-size: 24px;
+        }
+        
+        .logo-text {
+            font-size: 20px; /* REDUCIDO */
+            font-weight: 600;
+            color: var(--primary-red);
+            letter-spacing: -0.5px;
+        }
+        
+        /* Botón Subir - TEXTO REDUCIDO */
+        .upload-main-btn { 
             background: var(--primary-red); 
             color: var(--white); 
             border: none; 
-            padding: 0.9rem 1.8rem; 
+            padding: 8px 16px; /* REDUCIDO */
             border-radius: var(--border-radius); 
             font-family: 'Poppins', sans-serif;
-            font-weight: 600; 
-            font-size: 1rem;
+            font-weight: 500; 
+            font-size: 14px; /* REDUCIDO */
             cursor: pointer; 
             transition: all 0.2s; 
             display: flex; 
             align-items: center; 
-            gap: 8px; 
+            gap: 6px; 
         }
         
-        .upload-button:hover { 
+        .upload-main-btn:hover { 
             background: var(--dark-red); 
             transform: translateY(-2px); 
         }
         
-        /* Grid de videos - AGRANDADO 20% */
-        .video-grid-container { 
-            padding: 1.8rem; 
+        /* ========== CUADRÍCULA DE VIDEOS ========== */
+        .videos-container { 
+            padding: 20px; 
             max-width: 1400px; 
             margin: 0 auto; 
         }
         
-        .video-grid-container h2 { 
-            font-size: 1.8rem; 
-            margin-bottom: 1.5rem; 
-            color: var(--light-gray); 
+        .section-title {
+            font-size: 18px;
             font-weight: 600;
+            color: var(--light-gray);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--medium-gray);
         }
         
-        .video-grid { 
+        /* CUADRÍCULA MEJORADA - 4 columnas por defecto */
+        .videos-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 1.8rem; 
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); 
+            gap: 20px; 
         }
         
-        .video-card { 
+        .video-item { 
             background: var(--dark-gray); 
             border-radius: var(--border-radius); 
             overflow: hidden; 
             box-shadow: var(--shadow); 
-            transition: all 0.2s; 
-            cursor: pointer; 
-            border: 2px solid transparent; 
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+            position: relative;
         }
         
-        .video-card:hover { 
-            transform: translateY(-6px); 
-            border-color: var(--primary-red); 
+        .video-item:hover { 
+            transform: translateY(-5px); 
+            border-color: var(--primary-red);
+            box-shadow: 0 8px 20px rgba(211, 47, 47, 0.2);
         }
         
-        .video-thumbnail { 
-            position: relative; 
+        .video-thumb { 
             width: 100%; 
-            height: 190px; /* AGRANDADO */
+            height: 160px; 
             overflow: hidden; 
             background: var(--medium-gray); 
+            position: relative;
         }
         
-        .video-thumbnail img { 
+        .video-thumb img { 
             width: 100%; 
             height: 100%; 
             object-fit: cover; 
+            transition: transform 0.3s ease;
         }
         
-        .video-duration { 
+        .video-item:hover .video-thumb img {
+            transform: scale(1.05);
+        }
+        
+        .video-time { 
             position: absolute; 
             bottom: 10px; 
             right: 10px; 
-            background: rgba(0,0,0,0.8); 
+            background: rgba(0,0,0,0.85); 
             color: var(--white); 
-            padding: 4px 8px; 
+            padding: 3px 8px; 
             border-radius: 4px; 
-            font-size: 0.85rem; 
+            font-size: 12px; 
             font-weight: 500;
         }
         
-        .video-info { 
-            padding: 1.2rem; 
+        .video-content { 
+            padding: 15px; 
         }
         
-        .video-info h3 { 
-            font-size: 1.1rem; 
-            font-weight: 600;
-            margin-bottom: 0.5rem; 
+        .video-title { 
+            font-size: 14px; 
+            font-weight: 500;
+            margin-bottom: 8px; 
             display: -webkit-box; 
             -webkit-line-clamp: 2; 
             -webkit-box-orient: vertical; 
-            overflow: hidden; 
+            overflow: hidden;
             line-height: 1.4;
         }
         
-        .video-meta { 
+        .video-stats { 
             display: flex; 
             justify-content: space-between; 
             color: var(--light-gray); 
-            font-size: 0.9rem; 
+            font-size: 12px; 
         }
         
-        /* Pantalla de subida - AGRANDADO 20% */
+        .video-size {
+            color: #aaa;
+        }
+        
+        .video-date {
+            color: #888;
+        }
+        
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--light-gray);
+        }
+        
+        .empty-state i {
+            font-size: 48px;
+            color: var(--primary-red);
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+        
+        /* ========== PANTALLA DE SUBIDA ========== */
+        .upload-screen.active { 
+            display: block; 
+            min-height: 100vh;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .upload-screen { display: none; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Header subida */
         .upload-header { 
             background: var(--dark-gray); 
-            padding: 1.2rem 2rem; 
+            padding: 15px 20px; 
             display: flex; 
             align-items: center; 
-            border-bottom: 3px solid var(--primary-red); 
+            border-bottom: 2px solid var(--primary-red); 
         }
         
-        .upload-header h2 { 
-            font-size: 1.6rem; 
-            font-weight: 600; 
-            color: var(--primary-red); 
-            margin-left: 1rem;
-        }
-        
-        .back-button { 
+        .back-btn { 
             background: var(--medium-gray); 
             color: var(--white); 
             border: none; 
-            width: 45px; /* AGRANDADO */
-            height: 45px; 
+            width: 36px; 
+            height: 36px; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             cursor: pointer; 
-            font-size: 1.3rem; 
+            font-size: 16px; 
             transition: all 0.2s; 
+            margin-right: 15px;
         }
         
-        .back-button:hover { 
+        .back-btn:hover { 
             background: var(--primary-red); 
         }
         
-        .upload-container { 
-            max-width: 700px; /* AGRANDADO */
-            margin: 2rem auto; 
-            padding: 0 2rem; 
-        }
-        
-        .upload-area { 
-            background: var(--dark-gray); 
-            border: 3px dashed var(--primary-red); 
-            border-radius: var(--border-radius); 
-            padding: 3rem 2rem; /* AGRANDADO */
-            text-align: center; 
-            cursor: pointer; 
-            transition: all 0.2s; 
-        }
-        
-        .upload-area:hover { 
-            background: var(--medium-gray); 
-            border-color: var(--light-red); 
-        }
-        
-        .upload-area i { 
-            font-size: 4.5rem; /* AGRANDADO */
-            color: var(--primary-red); 
-            margin-bottom: 1.5rem; 
-        }
-        
-        .upload-area h3 { 
-            font-size: 1.6rem; /* AGRANDADO */
-            margin-bottom: 0.6rem; 
+        .upload-title { 
+            font-size: 18px; 
+            font-weight: 600; 
             color: var(--white); 
         }
         
-        .upload-area p { 
-            color: var(--light-gray); 
-            margin-bottom: 1.5rem; 
-            font-size: 1rem;
+        /* ========== SISTEMA DE SELECCIÓN NUEVO ========== */
+        .upload-content {
+            max-width: 600px;
+            margin: 30px auto;
+            padding: 0 20px;
         }
         
-        .select-video-btn { 
-            background: var(--primary-red); 
-            color: var(--white); 
-            border: none; 
-            padding: 0.9rem 2rem; /* AGRANDADO */
-            border-radius: var(--border-radius); 
+        /* Área de selección - COMPLETAMENTE NUEVA */
+        .selection-area {
+            background: var(--dark-gray);
+            border-radius: var(--border-radius);
+            padding: 40px 30px;
+            text-align: center;
+            border: 2px dashed var(--medium-gray);
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .selection-area.active {
+            border-color: var(--primary-red);
+            background: rgba(211, 47, 47, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-red);
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .selection-text h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--white);
+        }
+        
+        .selection-text p {
+            color: var(--light-gray);
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        
+        /* Botón de selección - NUEVO DISEÑO */
+        .select-btn {
+            background: var(--primary-red);
+            color: var(--white);
+            border: none;
+            padding: 12px 30px;
+            border-radius: var(--border-radius);
             font-family: 'Poppins', sans-serif;
-            font-weight: 600; 
-            font-size: 1rem;
-            cursor: pointer; 
-            transition: all 0.2s; 
-            margin-bottom: 1rem; 
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .select-video-btn:hover { 
-            background: var(--dark-red); 
-            transform: translateY(-2px); 
+        .select-btn:hover {
+            background: var(--dark-red);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(211, 47, 47, 0.3);
         }
         
-        .file-info { 
-            font-size: 0.9rem; 
-            color: #aaa; 
+        .file-input {
+            display: none;
         }
         
-        .upload-details { 
-            background: var(--dark-gray); 
-            border-radius: var(--border-radius); 
-            padding: 2rem; /* AGRANDADO */
-            margin-top: 2rem; 
-            box-shadow: var(--shadow); 
+        .file-info {
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
         }
         
-        .upload-progress-container { 
-            background: var(--medium-gray); 
-            border-radius: 8px; 
-            padding: 1.5rem; /* AGRANDADO */
-            margin: 1.5rem 0; 
+        /* Área de arrastrar y soltar */
+        .drag-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(211, 47, 47, 0.1);
+            border: 3px dashed var(--primary-red);
+            border-radius: var(--border-radius);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
         }
         
-        .progress-info { 
-            display: flex; 
-            justify-content: space-between; 
-            margin-bottom: 0.8rem; 
-            font-weight: 500; 
-            font-size: 1rem;
+        .drag-overlay.active {
+            display: flex;
+            animation: pulse 1.5s infinite;
         }
         
-        .progress-bar { 
-            width: 100%; 
-            height: 12px; /* AGRANDADO */
-            background: var(--black); 
-            border-radius: 6px; 
-            overflow: hidden; 
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
         
-        .progress-fill { 
-            height: 100%; 
-            background: var(--primary-red); 
-            border-radius: 6px; 
-            width: 0%; 
-            transition: width 0.2s; 
+        .drag-text {
+            background: var(--primary-red);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
         }
         
-        /* Pantalla de reproducción - AGRANDADO 20% */
-        .player-header { 
-            background: var(--dark-gray); 
-            padding: 1.2rem 2rem; 
-            display: flex; 
-            align-items: center; 
-            border-bottom: 3px solid var(--primary-red); 
+        /* ========== PANEL DE PROGRESO ========== */
+        .upload-panel {
+            background: var(--dark-gray);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+            animation: slideUp 0.3s ease;
         }
         
-        .player-header h2 { 
-            font-size: 1.6rem; 
-            font-weight: 600; 
-            color: var(--primary-red); 
-            margin-left: 1rem; 
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
         
-        .player-container { 
-            max-width: 900px; /* AGRANDADO */
-            margin: 2rem auto; 
-            padding: 0 2rem; 
+        .upload-panel.active {
+            display: block;
         }
         
-        .video-player-wrapper { 
-            background: var(--black); 
-            border-radius: var(--border-radius); 
-            overflow: hidden; 
-            margin-bottom: 2rem; 
-            box-shadow: var(--shadow); 
+        .file-details {
+            margin-bottom: 20px;
         }
         
-        #video-player { 
-            width: 100%; 
-            max-height: 65vh; /* AGRANDADO */
+        .file-name {
+            font-weight: 500;
+            color: var(--white);
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .file-size {
+            color: var(--light-gray);
+            font-size: 13px;
+        }
+        
+        .progress-container {
+            background: var(--medium-gray);
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        
+        .progress-percent {
+            font-weight: 600;
+            color: var(--primary-red);
+        }
+        
+        .progress-speed {
+            color: #aaa;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: var(--black);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--primary-red);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .upload-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .cancel-btn {
+            background: transparent;
+            color: var(--light-gray);
+            border: 1px solid var(--medium-gray);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .cancel-btn:hover {
+            background: var(--medium-gray);
+            color: var(--white);
+        }
+        
+        /* ========== PANTALLA REPRODUCTOR ========== */
+        .player-screen.active { 
             display: block; 
+            min-height: 100vh;
         }
         
-        .video-info { 
-            background: var(--dark-gray); 
-            border-radius: var(--border-radius); 
-            padding: 1.8rem; /* AGRANDADO */
-            box-shadow: var(--shadow); 
+        .player-screen { display: none; }
+        
+        .player-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
         }
         
-        .video-info h3 { 
-            font-size: 1.8rem; /* AGRANDADO */
-            margin-bottom: 1rem; 
-            color: var(--white); 
+        .video-player {
+            width: 100%;
+            background: var(--black);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
         }
         
-        .download-btn { 
-            background: var(--primary-red); 
-            color: var(--white); 
-            border: none; 
-            padding: 1rem 2.5rem; /* AGRANDADO */
-            border-radius: var(--border-radius); 
+        #player-video {
+            width: 100%;
+            max-height: 70vh;
+            display: block;
+        }
+        
+        .player-info {
+            background: var(--dark-gray);
+            border-radius: var(--border-radius);
+            padding: 20px;
+        }
+        
+        .player-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--white);
+        }
+        
+        .player-meta {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            color: var(--light-gray);
+            font-size: 14px;
+        }
+        
+        .player-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .download-btn {
+            background: var(--primary-red);
+            color: var(--white);
+            border: none;
+            padding: 12px 25px;
+            border-radius: var(--border-radius);
             font-family: 'Poppins', sans-serif;
-            font-weight: 600; 
-            font-size: 1rem;
-            cursor: pointer; 
-            transition: all 0.2s; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+            font-weight: 500;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .download-btn:hover { 
-            background: var(--dark-red); 
-            transform: translateY(-2px); 
+        .download-btn:hover {
+            background: var(--dark-red);
+            transform: translateY(-2px);
         }
         
-        /* Notificaciones - AGRANDADO */
+        /* ========== NOTIFICACIONES ========== */
         .notification {
             position: fixed;
             top: 20px;
@@ -366,14 +540,13 @@
             background: var(--primary-red);
             color: white;
             padding: 15px 20px;
-            border-radius: 8px;
+            border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             z-index: 10000;
-            animation: slideIn 0.2s ease;
+            animation: slideInRight 0.3s ease;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 1rem;
             max-width: 350px;
         }
         
@@ -385,113 +558,161 @@
             background: #2e7d32;
         }
         
-        @keyframes slideIn {
+        @keyframes slideInRight {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
         
-        @keyframes slideOut {
+        @keyframes slideOutRight {
             from { transform: translateX(0); opacity: 1; }
             to { transform: translateX(100%); opacity: 0; }
         }
         
-        /* Responsive */
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 1200px) {
+            .videos-grid { 
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+            }
+        }
+        
         @media (max-width: 768px) {
-            .video-grid { 
-                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
-                gap: 1.5rem; 
+            .videos-grid { 
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+                gap: 15px; 
             }
             
-            .video-thumbnail { 
-                height: 170px; 
+            .video-thumb { 
+                height: 140px; 
             }
             
-            .main-header, .upload-header, .player-header { 
-                padding: 1rem 1.5rem; 
+            .logo-text {
+                font-size: 18px;
             }
             
-            .video-grid-container, .upload-container, .player-container { 
-                padding: 1.5rem; 
-            }
-            
-            .upload-area { 
-                padding: 2.5rem 1.5rem; 
+            .upload-main-btn {
+                font-size: 13px;
+                padding: 7px 14px;
             }
         }
         
         @media (max-width: 480px) {
-            .video-grid { 
-                grid-template-columns: 1fr; 
+            .videos-grid { 
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); 
             }
             
-            .main-header h1 { 
-                font-size: 1.5rem; 
+            .video-thumb { 
+                height: 120px; 
             }
             
-            .upload-button, .select-video-btn, .download-btn { 
-                padding: 0.8rem 1.5rem; 
+            .logo-text {
+                font-size: 16px;
             }
             
-            .video-thumbnail { 
-                height: 150px; 
+            .upload-main-btn {
+                font-size: 12px;
+                padding: 6px 12px;
             }
+            
+            .videos-container {
+                padding: 15px;
+            }
+        }
+        
+        /* Estado de carga */
+        .loading {
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--medium-gray);
+            border-top-color: var(--primary-red);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <!-- Pantalla Principal -->
-    <div id="main-screen" class="screen active">
+    <!-- ========== PANTALLA PRINCIPAL ========== -->
+    <div id="main-screen" class="main-screen active">
         <header class="main-header">
-            <h1><i class="fas fa-play-circle"></i>CPVideos</h1>
-            <button id="upload-btn" class="upload-button">
-                <i class="fas fa-upload"></i> Subir Video
+            <div class="logo-container">
+                <i class="fas fa-play-circle logo-icon"></i>
+                <span class="logo-text">CPVideos</span>
+            </div>
+            <button id="upload-main-btn" class="upload-main-btn">
+                <i class="fas fa-plus"></i> Subir
             </button>
         </header>
 
-        <main class="video-grid-container">
-            <h2>Videos</h2>
-            <div id="video-grid" class="video-grid">
-                <div class="video-placeholder" style="grid-column: 1 / -1; text-align: center; padding: 3rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
-                    <p>Cargando videos...</p>
+        <main class="videos-container">
+            <h2 class="section-title">Videos Recientes</h2>
+            
+            <!-- CUADRÍCULA DE VIDEOS -->
+            <div id="videos-grid" class="videos-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Pantalla de Subida de Video -->
-    <div id="upload-screen" class="screen">
+    <!-- ========== PANTALLA DE SUBIDA ========== -->
+    <div id="upload-screen" class="upload-screen">
         <header class="upload-header">
-            <button id="back-from-upload-btn" class="back-button">
+            <button id="back-btn" class="back-btn">
                 <i class="fas fa-arrow-left"></i>
             </button>
-            <h2>Subir Video</h2>
+            <h2 class="upload-title">Subir Video</h2>
         </header>
 
-        <div class="upload-container">
-            <div class="upload-area" id="upload-area">
-                <i class="fas fa-cloud-upload-alt"></i>
-                <h3>Arrastra y suelta tu video aquí</h3>
-                <p>o haz clic para seleccionar</p>
-                <input type="file" id="video-input" accept="video/*" style="display: none;">
-                <button id="select-video-btn" class="select-video-btn">Seleccionar Video</button>
-                <p class="file-info">Formatos: MP4, AVI, MOV, MKV, WEBM (Max. 50MB)</p>
+        <div class="upload-content">
+            <!-- SISTEMA DE SELECCIÓN NUEVO -->
+            <div class="selection-area" id="selection-area">
+                <div class="drag-overlay" id="drag-overlay">
+                    <div class="drag-text">Suelta el video aquí</div>
+                </div>
+                
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <div class="selection-text">
+                    <h3>Selecciona tu video</h3>
+                    <p>Arrastra y suelta un archivo de video aquí o haz clic para buscarlo</p>
+                </div>
+                
+                <input type="file" id="file-input" class="file-input" accept="video/*">
+                <button id="select-btn" class="select-btn">
+                    <i class="fas fa-folder-open"></i> Buscar Video
+                </button>
+                
+                <p class="file-info">MP4, AVI, MOV, MKV, WEBM • Máximo 50MB</p>
             </div>
 
-            <div id="upload-details" class="upload-details" style="display: none;">
-                <h3 id="upload-title">Preparando subida...</h3>
-
-                <div class="upload-progress-container">
-                    <div class="progress-info">
-                        <span id="progress-text">0%</span>
-                        <span id="upload-speed">0 KB/s</span>
+            <!-- PANEL DE PROGRESO -->
+            <div id="upload-panel" class="upload-panel">
+                <div class="file-details">
+                    <div class="file-name" id="file-name">video.mp4</div>
+                    <div class="file-size" id="file-size">0 MB</div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span class="progress-percent" id="progress-percent">0%</span>
+                        <span class="progress-speed" id="progress-speed">0 KB/s</span>
                     </div>
                     <div class="progress-bar">
-                        <div id="upload-progress" class="progress-fill"></div>
+                        <div class="progress-fill" id="progress-fill"></div>
                     </div>
                 </div>
-
+                
                 <div class="upload-actions">
-                    <button id="cancel-upload-btn" class="upload-button" style="background: var(--medium-gray);">
+                    <button id="cancel-upload-btn" class="cancel-btn">
                         <i class="fas fa-times"></i> Cancelar
                     </button>
                 </div>
@@ -499,30 +720,30 @@
         </div>
     </div>
 
-    <!-- Pantalla de Reproducción -->
-    <div id="player-screen" class="screen">
-        <header class="player-header">
-            <button id="close-player-btn" class="back-button">
+    <!-- ========== PANTALLA REPRODUCTOR ========== -->
+    <div id="player-screen" class="player-screen">
+        <header class="upload-header">
+            <button id="close-player-btn" class="back-btn">
                 <i class="fas fa-times"></i>
             </button>
-            <h2 id="player-title">Reproduciendo Video</h2>
+            <h2 class="upload-title" id="player-header-title">Reproduciendo</h2>
         </header>
 
         <div class="player-container">
-            <div class="video-player-wrapper">
-                <video id="video-player" controls autoplay>
+            <div class="video-player">
+                <video id="player-video" controls autoplay>
                     Tu navegador no soporta la reproducción de videos.
                 </video>
             </div>
-
-            <div class="video-info">
-                <h3 id="video-player-title">Título del Video</h3>
-                <div class="video-meta" style="margin: 1rem 0; color: var(--light-gray);">
-                    <span id="video-duration"><i class="fas fa-clock"></i> 0:00</span>
-                    <span id="video-views"><i class="fas fa-eye"></i> 0 vistas</span>
+            
+            <div class="player-info">
+                <h3 class="player-title" id="player-video-title">Título del Video</h3>
+                <div class="player-meta">
+                    <span id="player-duration"><i class="fas fa-clock"></i> 0:00</span>
+                    <span id="player-views"><i class="fas fa-eye"></i> 0 vistas</span>
+                    <span id="player-date"><i class="fas fa-calendar"></i> Hoy</span>
                 </div>
-
-                <button id="download-btn" class="download-btn">
+                <button id="download-video-btn" class="download-btn">
                     <i class="fas fa-download"></i> Descargar Video
                 </button>
             </div>
@@ -531,79 +752,85 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Variables globales
+        // ========== VARIABLES GLOBALES ==========
         let videos = [];
         let selectedFile = null;
         let uploadInProgress = false;
         let uploadStartTime = null;
         let currentUploadXHR = null;
         let socket = null;
-        let fileInputProcessing = false; // ✅ EVITA DOBLE PROCESAMIENTO
 
-        // Elementos del DOM
-        const mainScreen = document.getElementById('main-screen');
-        const uploadScreen = document.getElementById('upload-screen');
-        const playerScreen = document.getElementById('player-screen');
-        const videoGrid = document.getElementById('video-grid');
+        // ========== ELEMENTOS DEL DOM ==========
+        const screens = {
+            main: document.getElementById('main-screen'),
+            upload: document.getElementById('upload-screen'),
+            player: document.getElementById('player-screen')
+        };
         
-        // Botones de navegación
-        const uploadBtn = document.getElementById('upload-btn');
-        const backFromUploadBtn = document.getElementById('back-from-upload-btn');
-        const closePlayerBtn = document.getElementById('close-player-btn');
+        // Pantalla principal
+        const uploadMainBtn = document.getElementById('upload-main-btn');
+        const videosGrid = document.getElementById('videos-grid');
         
-        // Elementos de subida - ✅ SOLUCIÓN DEFINITIVA AL DOBLE CLICK
-        const videoInput = document.getElementById('video-input');
-        const selectVideoBtn = document.getElementById('select-video-btn');
-        const uploadArea = document.getElementById('upload-area');
-        const uploadDetails = document.getElementById('upload-details');
-        const uploadTitle = document.getElementById('upload-title');
+        // Pantalla de subida (NUEVO SISTEMA)
+        const backBtn = document.getElementById('back-btn');
+        const selectionArea = document.getElementById('selection-area');
+        const fileInput = document.getElementById('file-input');
+        const selectBtn = document.getElementById('select-btn');
+        const dragOverlay = document.getElementById('drag-overlay');
+        const uploadPanel = document.getElementById('upload-panel');
+        const fileName = document.getElementById('file-name');
+        const fileSize = document.getElementById('file-size');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressSpeed = document.getElementById('progress-speed');
+        const progressFill = document.getElementById('progress-fill');
         const cancelUploadBtn = document.getElementById('cancel-upload-btn');
-        const uploadProgress = document.getElementById('upload-progress');
-        const progressText = document.getElementById('progress-text');
-        const uploadSpeed = document.getElementById('upload-speed');
         
-        // Elementos de reproducción
-        const videoPlayer = document.getElementById('video-player');
-        const videoPlayerTitle = document.getElementById('video-player-title');
-        const playerTitle = document.getElementById('player-title');
-        const videoDuration = document.getElementById('video-duration');
-        const videoViews = document.getElementById('video-views');
-        const downloadBtn = document.getElementById('download-btn');
+        // Pantalla reproductor
+        const closePlayerBtn = document.getElementById('close-player-btn');
+        const playerVideo = document.getElementById('player-video');
+        const playerVideoTitle = document.getElementById('player-video-title');
+        const playerHeaderTitle = document.getElementById('player-header-title');
+        const playerDuration = document.getElementById('player-duration');
+        const playerViews = document.getElementById('player-views');
+        const playerDate = document.getElementById('player-date');
+        const downloadVideoBtn = document.getElementById('download-video-btn');
 
-        // ==================== FUNCIONES PRINCIPALES ====================
-
-        // Función para cambiar entre pantallas
+        // ========== FUNCIONES PRINCIPALES ==========
+        
+        // Cambiar entre pantallas
         function switchScreen(screenName) {
-            // Ocultar todas las pantallas
-            mainScreen.classList.remove('active');
-            uploadScreen.classList.remove('active');
-            playerScreen.classList.remove('active');
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
             
-            // Mostrar la pantalla solicitada
             if (screenName === 'main') {
-                mainScreen.classList.add('active');
+                screens.main.classList.add('active');
                 resetUploadForm();
                 loadVideos();
             } else if (screenName === 'upload') {
-                uploadScreen.classList.add('active');
+                screens.upload.classList.add('active');
             } else if (screenName === 'player') {
-                playerScreen.classList.add('active');
+                screens.player.classList.add('active');
             }
         }
 
-        // Cargar videos desde el servidor
+        // Cargar videos
         async function loadVideos() {
             try {
+                videosGrid.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+                
                 const response = await fetch('/api/videos');
+                if (!response.ok) throw new Error('Error API');
+                
                 videos = await response.json();
-                renderVideoGrid();
+                renderVideosGrid();
             } catch (error) {
                 console.error('Error cargando videos:', error);
                 showNotification('Error al cargar videos', 'error');
-                videoGrid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
-                        <p>Error al cargar los videos</p>
-                        <button onclick="loadVideos()" class="upload-button" style="margin-top: 1rem;">
+                videosGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>Error al cargar videos</h3>
+                        <p>No se pudieron cargar los videos. Intenta de nuevo.</p>
+                        <button onclick="loadVideos()" class="select-btn" style="margin-top: 15px;">
                             <i class="fas fa-redo"></i> Reintentar
                         </button>
                     </div>
@@ -611,138 +838,113 @@
             }
         }
 
-        // Renderizar la cuadrícula de videos
-        function renderVideoGrid() {
+        // Renderizar cuadrícula de videos
+        function renderVideosGrid() {
             if (videos.length === 0) {
-                videoGrid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
-                        <p>No hay videos disponibles</p>
-                        <p>¡Sube el primero tocando el botón "Subir Video"!</p>
+                videosGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-video-slash"></i>
+                        <h3>No hay videos</h3>
+                        <p>Sube el primer video haciendo clic en el botón "Subir"</p>
                     </div>
                 `;
                 return;
             }
             
-            videoGrid.innerHTML = videos.map(video => `
-                <div class="video-card" data-id="${video.id}">
-                    <div class="video-thumbnail">
-                        <img src="${video.thumbnail || 'https://placehold.co/400x190/d32f2f/ffffff?text=Video'}" 
+            videosGrid.innerHTML = videos.map(video => `
+                <div class="video-item" data-id="${video.id}">
+                    <div class="video-thumb">
+                        <img src="${video.thumbnail || 'https://placehold.co/400x160/d32f2f/ffffff?text=Video'}" 
                              alt="${video.title}"
-                             onerror="this.src='https://placehold.co/400x190/d32f2f/ffffff?text=Thumbnail'">
-                        <span class="video-duration">${video.duration || '0:00'}</span>
+                             onerror="this.src='https://placehold.co/400x160/2a2a2a/ffffff?text=Thumbnail'">
+                        <span class="video-time">${video.duration || '0:00'}</span>
                     </div>
-                    <div class="video-info">
-                        <h3>${video.title || 'Video sin título'}</h3>
-                        <div class="video-meta">
-                            <span>${video.size || '0 MB'}</span>
-                            <span>${formatDate(video.uploaded_at)}</span>
+                    <div class="video-content">
+                        <h4 class="video-title">${video.title || 'Video sin título'}</h4>
+                        <div class="video-stats">
+                            <span class="video-size">${video.size || '0 MB'}</span>
+                            <span class="video-date">${formatDate(video.uploaded_at)}</span>
                         </div>
                     </div>
                 </div>
             `).join('');
             
-            // Agregar event listeners a los videos - ✅ UN SOLO TOQUE
-            document.querySelectorAll('.video-card').forEach(card => {
-                card.addEventListener('click', function() {
+            // Event listeners para videos
+            document.querySelectorAll('.video-item').forEach(item => {
+                item.addEventListener('click', function() {
                     const videoId = this.getAttribute('data-id');
                     openVideoPlayer(videoId);
                 });
             });
         }
 
-        // Abrir reproductor de video
+        // Abrir reproductor
         async function openVideoPlayer(videoId) {
             try {
                 const response = await fetch(`/api/videos/${videoId}`);
                 const video = await response.json();
                 
-                // Configurar el reproductor
-                videoPlayer.src = `/uploads/${video.filename}`;
-                videoPlayerTitle.textContent = video.title;
-                playerTitle.textContent = `Reproduciendo: ${video.title}`;
+                playerVideo.src = `/uploads/${video.filename}`;
+                playerVideoTitle.textContent = video.title;
+                playerHeaderTitle.textContent = `Reproduciendo: ${video.title.substring(0, 30)}${video.title.length > 30 ? '...' : ''}`;
+                playerDuration.innerHTML = `<i class="fas fa-clock"></i> ${video.duration || '0:00'}`;
+                playerViews.innerHTML = `<i class="fas fa-eye"></i> ${video.views || 0} vistas`;
+                playerDate.innerHTML = `<i class="fas fa-calendar"></i> ${formatDate(video.uploaded_at)}`;
                 
-                // Configurar metadatos
-                videoDuration.innerHTML = `<i class="fas fa-clock"></i> ${video.duration || '0:00'}`;
-                videoViews.innerHTML = `<i class="fas fa-eye"></i> ${video.views || 0} vistas`;
-                
-                // Configurar botón de descarga
-                downloadBtn.onclick = () => {
+                downloadVideoBtn.onclick = () => {
                     window.open(`/api/videos/${videoId}/download`, '_blank');
                 };
                 
-                // Cambiar a pantalla de reproducción
                 switchScreen('player');
-                
             } catch (error) {
                 console.error('Error abriendo video:', error);
                 showNotification('Error al cargar el video', 'error');
             }
         }
 
-        // ==================== FUNCIONES DE SUBIDA (CORREGIDO DOBLE CLICK) ====================
-
-        // ✅ SOLUCIÓN DEFINITIVA: Función para manejar selección de video
-        function handleVideoSelect(file) {
-            if (!file || fileInputProcessing) return;
+        // ========== NUEVO SISTEMA DE SUBIDA ==========
+        
+        // Activar área de selección
+        function activateSelectionArea() {
+            selectionArea.classList.add('active');
+            dragOverlay.classList.add('active');
+        }
+        
+        // Desactivar área de selección
+        function deactivateSelectionArea() {
+            selectionArea.classList.remove('active');
+            dragOverlay.classList.remove('active');
+        }
+        
+        // Manejar selección de archivo
+        function handleFileSelect(file) {
+            if (!file) return;
             
-            // Bloquear procesamiento adicional
-            fileInputProcessing = true;
+            console.log('Archivo seleccionado:', file.name);
             
-            console.log('✅ Video seleccionado:', file.name);
-            
-            // Validar que sea un video
+            // Validaciones
             if (!file.type.startsWith('video/')) {
-                showNotification('Por favor selecciona un archivo de video', 'error');
-                fileInputProcessing = false;
+                showNotification('Selecciona un archivo de video válido', 'error');
                 return;
             }
             
-            // Validar tamaño (máximo 50MB para Render)
-            const maxSize = 50 * 1024 * 1024;
-            if (file.size > maxSize) {
-                showNotification('El video es demasiado grande. Máximo 50MB.', 'error');
-                fileInputProcessing = false;
+            if (file.size > 50 * 1024 * 1024) {
+                showNotification('El video es demasiado grande (máx. 50MB)', 'error');
                 return;
             }
             
             selectedFile = file;
             
-            // Mostrar detalles de subida
-            uploadDetails.style.display = 'block';
-            uploadTitle.textContent = `Subiendo: ${file.name}`;
+            // Mostrar panel de subida
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            uploadPanel.classList.add('active');
             
-            // Iniciar subida inmediatamente
+            // Iniciar subida automáticamente
             uploadVideo(file);
-            
-            // Desbloquear después de un breve retraso
-            setTimeout(() => {
-                fileInputProcessing = false;
-            }, 100);
         }
-
-        // ✅ SOLUCIÓN SIMPLIFICADA: Event handler único
-        function handleFileInput(event) {
-            const file = event.target.files[0];
-            if (file) {
-                handleVideoSelect(file);
-                // Limpiar input para permitir seleccionar el mismo archivo
-                event.target.value = '';
-            }
-        }
-
-        // ✅ SOLUCIÓN SIMPLIFICADA: Event handler para drag and drop
-        function handleFileDrop(event) {
-            event.preventDefault();
-            uploadArea.style.borderColor = 'var(--primary-red)';
-            uploadArea.style.backgroundColor = 'var(--dark-gray)';
-            
-            const file = event.dataTransfer.files[0];
-            if (file) {
-                handleVideoSelect(file);
-            }
-        }
-
-        // Subir video al servidor
+        
+        // Subir video
         function uploadVideo(file) {
             if (uploadInProgress) {
                 showNotification('Ya hay una subida en progreso', 'error');
@@ -752,84 +954,70 @@
             const formData = new FormData();
             formData.append('video', file);
             
-            // Crear XMLHttpRequest para monitorear progreso
             currentUploadXHR = new XMLHttpRequest();
             uploadInProgress = true;
             uploadStartTime = Date.now();
             
-            // Monitorear progreso
+            // Progreso
             currentUploadXHR.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    progressFill.style.width = `${percent}%`;
+                    progressPercent.textContent = `${percent}%`;
                     
-                    // Actualizar barra de progreso
-                    uploadProgress.style.width = `${percentComplete}%`;
-                    progressText.textContent = `${percentComplete}%`;
-                    
-                    // Calcular velocidad de subida
-                    const elapsedTime = (Date.now() - uploadStartTime) / 1000;
-                    const speed = e.loaded / elapsedTime;
+                    const elapsed = (Date.now() - uploadStartTime) / 1000;
+                    const speed = e.loaded / elapsed;
                     
                     if (speed > 1024 * 1024) {
-                        uploadSpeed.textContent = `${(speed / (1024 * 1024)).toFixed(1)} MB/s`;
+                        progressSpeed.textContent = `${(speed / (1024 * 1024)).toFixed(1)} MB/s`;
                     } else if (speed > 1024) {
-                        uploadSpeed.textContent = `${(speed / 1024).toFixed(1)} KB/s`;
+                        progressSpeed.textContent = `${(speed / 1024).toFixed(1)} KB/s`;
                     } else {
-                        uploadSpeed.textContent = `${Math.round(speed)} B/s`;
+                        progressSpeed.textContent = `${Math.round(speed)} B/s`;
                     }
                 }
             });
             
-            // Manejar respuesta
+            // Completado
             currentUploadXHR.addEventListener('load', () => {
                 uploadInProgress = false;
-                fileInputProcessing = false;
                 
                 if (currentUploadXHR.status === 200) {
-                    try {
-                        const response = JSON.parse(currentUploadXHR.responseText);
-                        
-                        // Mostrar progreso completo
-                        uploadProgress.style.width = '100%';
-                        progressText.textContent = '100%';
-                        uploadSpeed.textContent = 'Completado ✅';
-                        
-                        showNotification(`Video "${response.title}" subido exitosamente`, 'success');
-                        
-                        // Esperar 1 segundo y volver
-                        setTimeout(() => switchScreen('main'), 1000);
-                        
-                    } catch (error) {
-                        showNotification('Error procesando respuesta', 'error');
-                    }
+                    const response = JSON.parse(currentUploadXHR.responseText);
+                    progressPercent.textContent = '100%';
+                    progressSpeed.textContent = 'Completado ✓';
+                    
+                    showNotification(`Video "${response.title}" subido exitosamente`, 'success');
+                    
+                    setTimeout(() => {
+                        switchScreen('main');
+                    }, 1500);
                 } else {
-                    showNotification(`Error: ${currentUploadXHR.statusText}`, 'error');
+                    showNotification('Error al subir el video', 'error');
                 }
             });
             
-            // Manejar error
+            // Error
             currentUploadXHR.addEventListener('error', () => {
                 uploadInProgress = false;
-                fileInputProcessing = false;
                 showNotification('Error de conexión', 'error');
             });
             
-            // Manejar cancelación
+            // Cancelado
             currentUploadXHR.addEventListener('abort', () => {
                 uploadInProgress = false;
-                fileInputProcessing = false;
                 showNotification('Subida cancelada', 'error');
             });
             
-            // Iniciar subida
+            // Iniciar
             currentUploadXHR.open('POST', '/api/upload');
             currentUploadXHR.send(formData);
         }
-
+        
         // Cancelar subida
         function cancelUpload() {
             if (uploadInProgress && currentUploadXHR) {
-                if (confirm('¿Cancelar subida?')) {
+                if (confirm('¿Cancelar la subida?')) {
                     currentUploadXHR.abort();
                     switchScreen('main');
                 }
@@ -837,25 +1025,70 @@
                 switchScreen('main');
             }
         }
-
-        // Reiniciar formulario de subida
+        
+        // Reiniciar formulario
         function resetUploadForm() {
             selectedFile = null;
             uploadInProgress = false;
             uploadStartTime = null;
             currentUploadXHR = null;
-            fileInputProcessing = false;
             
-            if (videoInput) videoInput.value = '';
-            if (uploadDetails) uploadDetails.style.display = 'none';
-            if (uploadProgress) uploadProgress.style.width = '0%';
-            if (progressText) progressText.textContent = '0%';
-            if (uploadSpeed) uploadSpeed.textContent = '0 KB/s';
-            if (uploadTitle) uploadTitle.textContent = 'Preparando subida...';
+            fileInput.value = '';
+            uploadPanel.classList.remove('active');
+            progressFill.style.width = '0%';
+            progressPercent.textContent = '0%';
+            progressSpeed.textContent = '0 KB/s';
+            deactivateSelectionArea();
         }
 
-        // ==================== WEB SOCKETS ====================
+        // ========== UTILIDADES ==========
+        
+        // Mostrar notificación
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+        
+        // Formatear fecha
+        function formatDate(dateString) {
+            if (!dateString) return 'Reciente';
+            try {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 0) return 'Hoy';
+                if (diffDays === 1) return 'Ayer';
+                if (diffDays < 7) return `Hace ${diffDays}d`;
+                
+                return date.toLocaleDateString('es-ES', {month: 'short', day: 'numeric'});
+            } catch {
+                return 'Reciente';
+            }
+        }
+        
+        // Formatear tamaño de archivo
+        function formatFileSize(bytes) {
+            if (!bytes) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
 
+        // ========== WEB SOCKETS ==========
+        
         function setupWebSocket() {
             try {
                 socket = io();
@@ -871,147 +1104,78 @@
                 socket.on('video-processed', () => {
                     loadVideos();
                 });
-                
             } catch (error) {
                 console.error('❌ Error WebSocket:', error);
             }
         }
 
-        // ==================== FUNCIONES DE UTILIDAD ====================
-
-        // Mostrar notificación
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
-                ${message}
-            `;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.2s ease';
-                setTimeout(() => notification.remove(), 200);
-            }, 3000);
-        }
-
-        // Formatear fecha
-        function formatDate(dateString) {
-            if (!dateString) return 'Reciente';
-            try {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Hoy';
-                if (diffDays === 1) return 'Ayer';
-                if (diffDays < 7) return `Hace ${diffDays} días`;
-                
-                return date.toLocaleDateString('es-ES', {month: 'short', day: 'numeric'});
-            } catch {
-                return 'Reciente';
-            }
-        }
-
-        // ==================== CONFIGURACIÓN DE EVENTOS (SOLUCIÓN DEFINITIVA) ====================
-
+        // ========== CONFIGURACIÓN DE EVENTOS ==========
+        
         function setupEventListeners() {
-            console.log('🔧 Configurando event listeners...');
-            
-            // Botón de subir video
-            uploadBtn.addEventListener('click', () => {
-                console.log('🔼 Botón Subir Video presionado');
-                switchScreen('upload');
-            });
-            
-            // Botón para volver
-            backFromUploadBtn.addEventListener('click', cancelUpload);
-            
-            // Botón para cerrar reproductor
+            // Navegación
+            uploadMainBtn.addEventListener('click', () => switchScreen('upload'));
+            backBtn.addEventListener('click', cancelUpload);
             closePlayerBtn.addEventListener('click', () => {
-                videoPlayer.pause();
-                videoPlayer.src = '';
+                playerVideo.pause();
+                playerVideo.src = '';
                 switchScreen('main');
             });
             
-            // ✅ SOLUCIÓN DEFINITIVA: UN SOLO EVENT LISTENER POR ELEMENTO
+            // ===== NUEVO SISTEMA DE SELECCIÓN =====
             
-            // Botón para seleccionar video
-            selectVideoBtn.addEventListener('click', () => {
-                console.log('📁 Botón Seleccionar Video presionado');
-                videoInput.click();
-            }, { once: false }); // Permitir múltiples clics
+            // Botón de selección
+            selectBtn.addEventListener('click', () => {
+                fileInput.click();
+            });
             
-            // Área de subida
-            uploadArea.addEventListener('click', () => {
-                console.log('📦 Área de subida clickeada');
-                videoInput.click();
-            }, { once: false }); // Permitir múltiples clics
-            
-            // ✅ SOLUCIÓN CRÍTICA: Un solo event listener para el input
-            videoInput.addEventListener('change', handleFileInput);
+            // Input de archivo
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files[0]) {
+                    handleFileSelect(e.target.files[0]);
+                    fileInput.value = '';
+                }
+            });
             
             // Drag and drop
-            uploadArea.addEventListener('dragover', (e) => {
+            selectionArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                uploadArea.style.borderColor = 'var(--light-red)';
-                uploadArea.style.backgroundColor = 'var(--medium-gray)';
+                activateSelectionArea();
             });
             
-            uploadArea.addEventListener('dragleave', () => {
-                uploadArea.style.borderColor = 'var(--primary-red)';
-                uploadArea.style.backgroundColor = 'var(--dark-gray)';
+            selectionArea.addEventListener('dragleave', (e) => {
+                if (!selectionArea.contains(e.relatedTarget)) {
+                    deactivateSelectionArea();
+                }
             });
             
-            uploadArea.addEventListener('drop', handleFileDrop);
+            selectionArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                deactivateSelectionArea();
+                
+                if (e.dataTransfer.files[0]) {
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
             
-            // Botón de cancelar subida
-            if (cancelUploadBtn) {
-                cancelUploadBtn.addEventListener('click', cancelUpload);
-            }
-            
-            console.log('✅ Event listeners configurados correctamente');
+            // Botón cancelar
+            cancelUploadBtn.addEventListener('click', cancelUpload);
         }
 
-        // ==================== DIAGNÓSTICO ====================
-
-        function initDiagnostic() {
-            console.log('🔍 Diagnóstico de selección de archivos:');
-            console.log('  - videoInput:', videoInput ? '✅ Encontrado' : '❌ No encontrado');
-            console.log('  - selectVideoBtn:', selectVideoBtn ? '✅ Encontrado' : '❌ No encontrado');
-            console.log('  - uploadArea:', uploadArea ? '✅ Encontrado' : '❌ No encontrado');
-            
-            // Verificar conexión API
-            fetch('/api/health')
-                .then(res => res.json())
-                .then(data => console.log('✅ API conectada:', data.status))
-                .catch(err => console.error('❌ API no disponible:', err));
-        }
-
-        // ==================== INICIALIZACIÓN ====================
-
+        // ========== INICIALIZACIÓN ==========
+        
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 CPVideos - Inicializando...');
+            console.log('🚀 CPVideos - Iniciando...');
             
-            // Ejecutar diagnóstico
-            initDiagnostic();
-            
-            // Configurar eventos
             setupEventListeners();
-            
-            // Configurar WebSocket
             setupWebSocket();
-            
-            // Cargar videos iniciales
             loadVideos();
             
-            console.log('✅ Aplicación lista - UN SOLO TOQUE PARA SELECCIONAR');
+            console.log('✅ Aplicación lista');
         });
-
-        // Manejar errores
+        
+        // Manejo de errores
         window.onerror = function(msg) {
-            console.error('🔥 Error no capturado:', msg);
+            console.error('Error:', msg);
             return true;
         };
     </script>
