@@ -4,2325 +4,292 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPVideos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --primary-red: #e50914;
-            --dark-red: #b20710;
-            --pure-black: #000000;
-            --dark-black: #0a0a0a;
-            --medium-black: #141414;
-            --light-black: #1f1f1f;
-            --text-white: #ffffff;
-            --text-gray: #aaaaaa;
-            --success-green: #46d369;
-            --error-red: #e87c03;
-            --online-green: #00ff00;
-            --typing-blue: #3b82f6;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-        }
-        
-        body {
-            background: var(--pure-black);
-            color: var(--text-white);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        
-        /* Navegación superior mejorada: más simple y elegante con transiciones suaves */
-        .app-header {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 56px;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px; /* Aumentado padding para más espacio */
-            z-index: 1000;
-            transition: all 0.3s ease; /* Transición suave para opacity y visibility */
-        }
-        
-        .app-header.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--primary-red);
-            text-decoration: none;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-        
-        .logo:hover {
-            color: var(--dark-red);
-        }
-        
-        .logo-icon {
-            font-size: 24px;
-        }
-        
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 24px; /* Aumentado gap para jerarquía clara */
-        }
-        
-        .header-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-white);
-            font-size: 20px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: all 0.2s ease; /* Mejora en transiciones */
-            position: relative;
-            flex-direction: column;
-            gap: 2px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        .header-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px); /* Efecto levitación para modernidad */
-        }
-        
-        .btn-label {
-            font-size: 9px;
-            color: var(--text-gray);
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
-        
-        .unread-badge {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: var(--primary-red);
-            color: white;
-            font-size: 10px;
-            font-weight: 600;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--dark-black);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        /* Nueva Hero Section: Fondo abstracto dinámico con gradientes y animación sutil */
-        .hero-section {
-            position: relative;
-            height: 50vh; /* Altura ajustable para responsividad */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--medium-black), var(--light-black)); /* Fondo abstracto usando colores existentes */
-            overflow: hidden;
-            margin-bottom: 24px; /* Espacio amplio */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombras suaves */
-        }
-        
-        .hero-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(229, 9, 20, 0.1), transparent); /* Efecto dinámico abstracto */
-            animation: hero-pulse 10s infinite alternate ease-in-out; /* Animación sutil para dinamismo */
-            opacity: 0.5;
-        }
-        
-        @keyframes hero-pulse {
-            0% { transform: scale(1); opacity: 0.3; }
-            100% { transform: scale(1.2); opacity: 0.6; }
-        }
-        
-        .hero-content {
-            text-align: center;
-            z-index: 1;
-            padding: 0 24px;
-        }
-        
-        .hero-title {
-            font-size: 36px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-white);
-        }
-        
-        .hero-subtitle {
-            font-size: 18px;
-            color: var(--text-gray);
-            max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.5;
-        }
-        
-        /* PÁGINA PRINCIPAL DE VIDEOS mejorada con jerarquía clara y espacios amplios */
-        .page {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--pure-black);
-            z-index: 100;
-            overflow-y: auto;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .page.active {
-            display: block;
-        }
-        
-        #homePage {
-            position: relative;
-            display: block;
-            padding-top: 56px;
-        }
-        
-        #homePage.active {
-            display: block;
-            padding-top: 56px;
-        }
-        
-        .home-content {
-            padding: 24px; /* Aumentado para espacios amplios */
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        
-        .videos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Ajustado para mejor responsividad */
-            gap: 24px; /* Espacios amplios */
-            margin-top: 24px;
-        }
-        
-        .video-card {
-            background: var(--medium-black);
-            border-radius: 8px; /* Bordes más suaves */
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombras suaves para estilo tecnológico */
-        }
-        
-        .video-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(229, 9, 20, 0.15);
-        }
-        
-        .video-thumbnail {
-            width: 100%;
-            height: 120px; /* Ajustado para mejor proporción */
-            background: var(--light-black);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .video-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        
-        .video-card:hover .video-thumbnail img {
-            transform: scale(1.05);
-        }
-        
-        .video-duration {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: rgba(0, 0, 0, 0.85);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        
-        .video-info {
-            padding: 12px; /* Espacios amplios */
-        }
-        
-        .video-title {
-            font-size: 14px; /* Jerarquía clara */
-            font-weight: 500;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        /* PÁGINA DE SUBIR VÍDEO mejorada: más limpia, con componentes UI minimalistas */
-        #uploadPage {
-            padding-top: 0;
-        }
-        
-        #uploadPage .page-header {
-            position: sticky;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 56px;
-            background: rgba(0, 0, 0, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            padding: 0 24px; /* Espacios amplios */
-            z-index: 50;
-        }
-        
-        .back-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-white);
-            font-size: 20px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        .back-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        .page-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-white);
-            flex: 1;
-            text-align: center;
-        }
-        
-        .page-content {
-            padding: 32px; /* Espacios amplios */
-            max-width: 600px; /* Ajustado para centrado en UX */
-            margin: 0 auto;
-            width: 100%;
-        }
-        
-        .upload-container {
-            background: var(--medium-black);
-            border-radius: 12px; /* Bordes más suaves */
-            padding: 40px; /* Espacios amplios */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        .upload-title {
-            font-size: 24px; /* Jerarquía clara */
-            font-weight: 600;
-            margin-bottom: 24px;
-            text-align: center;
-        }
-        
-        .upload-area {
-            border: 2px dashed rgba(255, 255, 255, 0.3);
-            border-radius: 12px;
-            padding: 48px 24px;
-            text-align: center;
-            margin-bottom: 24px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra interna para profundidad */
-        }
-        
-        .upload-area:hover {
-            border-color: var(--primary-red);
-            background: rgba(255, 0, 0, 0.05);
-            transform: translateY(-2px);
-            box-shadow: inset 0 4px 8px rgba(229, 9, 20, 0.1);
-        }
-        
-        .upload-area i {
-            font-size: 48px;
-            color: var(--primary-red);
-            margin-bottom: 16px;
-        }
-        
-        .upload-area h3 {
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-        
-        .upload-area p {
-            color: var(--text-gray);
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        
-        .upload-file-list {
-            margin-top: 16px;
-            display: none;
-        }
-        
-        .upload-file-item {
-            background: var(--light-black);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .upload-file-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-2px);
-        }
-        
-        .file-info {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .file-icon {
-            color: var(--primary-red);
-            font-size: 24px;
-        }
-        
-        .file-details {
-            flex: 1;
-        }
-        
-        .file-name {
-            font-weight: 500;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-        
-        .file-size {
-            color: var(--text-gray);
-            font-size: 12px;
-        }
-        
-        .file-remove {
-            background: transparent;
-            border: none;
-            color: #ef4444;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: all 0.2s ease;
-        }
-        
-        .file-remove:hover {
-            background: rgba(239, 68, 68, 0.1);
-            transform: scale(1.1);
-        }
-        
-        .progress-container {
-            width: 100%;
-            margin: 24px 0;
-            display: none;
-        }
-        
-        .progress-item {
-            background: var(--light-black);
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        
-        .progress-filename {
-            font-size: 14px;
-            font-weight: 500;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
-        }
-        
-        .progress-percentage {
-            font-weight: 600;
-            color: var(--primary-red);
-            margin-left: 16px;
-            font-size: 14px;
-        }
-        
-        .progress-bar-container {
-            height: 8px;
-            background: var(--dark-black);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            background: var(--primary-red);
-            width: 0%;
-            transition: width 0.3s ease;
-            position: relative;
-        }
-        
-        .progress-bar-success {
-            background: var(--success-green) !important;
-        }
-        
-        .progress-bar-error {
-            background: var(--error-red) !important;
-        }
-        
-        .progress-status {
-            font-size: 12px;
-            color: var(--text-gray);
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .progress-speed {
-            color: var(--text-gray);
-        }
-        
-        .upload-counter {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: var(--primary-red);
-            color: white;
-            padding: 3px 6px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-            display: none;
-        }
-        
-        /* Componentes UI limpios: botones mejorados */
-        .btn {
-            padding: 14px 28px; /* Espacios amplios */
-            border: none;
-            border-radius: 8px; /* Bordes suaves */
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        .btn-primary {
-            background: var(--primary-red);
-            color: white;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            background: var(--dark-red);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(229, 9, 20, 0.3);
-        }
-        
-        .btn-secondary {
-            background: var(--light-black);
-            color: var(--text-white);
-        }
-        
-        .btn-secondary:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
-        }
-        
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
-        }
-        
-        /* PÁGINA DE CHAT mejorada: diseño fluido y legible con jerarquía clara */
-        #chatPage {
-            padding-top: 0;
-        }
-        
-        .chat-header {
-            background: var(--medium-black);
-            padding: 0 24px; /* Espacios amplios */
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            height: 56px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        .chat-header-content {
-            display: flex;
-            flex-direction: column;
-            gap: 0;
-            flex: 1;
-            margin-bottom: 8px;
-        }
-        
-        .chat-header-top {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        
-        .chat-title {
-            font-size: 18px;
-            font-weight: 600;
-            flex: 1;
-            line-height: 1;
-            margin-bottom: 1px;
-        }
-        
-        .online-count {
-            color: var(--text-gray);
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            line-height: 1;
-        }
-        
-        .online-dot {
-            width: 8px;
-            height: 8px;
-            background: var(--online-green);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .user-typing {
-            color: var(--typing-blue);
-            font-size: 13px;
-            font-style: italic;
-            height: 20px;
-            overflow: hidden;
-        }
-        
-        .chat-header .back-btn {
-            margin-bottom: 8px;
-        }
-        
-        .chat-messages {
-            padding: 16px 24px; /* Espacios amplios */
-            padding-bottom: 80px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px; /* Jerarquía clara */
-            min-height: calc(100vh - 56px);
-            max-height: calc(100vh - 56px);
-            overflow-y: auto;
-        }
-        
-        .message {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 20px; /* Bordes más suaves para fluidez */
-            position: relative;
-            animation: messageSlide 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        @keyframes messageSlide {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .message.sent {
-            align-self: flex-end;
-            background: var(--primary-red);
-            border-bottom-right-radius: 4px;
-        }
-        
-        .message.received {
-            align-self: flex-start;
-            background: var(--light-black);
-            border-bottom-left-radius: 4px;
-        }
-        
-        .message-header {
-            font-size: 12px;
-            color: var(--text-gray);
-            margin-bottom: 6px;
-            font-weight: 500;
-        }
-        
-        .message-content {
-            word-wrap: break-word;
-            font-size: 15px; /* Mejora legibilidad */
-            line-height: 1.5;
-        }
-        
-        .message-info {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 6px;
-            font-size: 11px;
-            opacity: 0.8;
-        }
-        
-        .message-sender {
-            font-weight: 600;
-        }
-        
-        .message-time {
-            margin-left: 8px;
-        }
-        
-        .message-image {
-            max-width: 100%;
-            max-height: 240px; /* Ajustado para UX */
-            border-radius: 12px;
-            margin-top: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .message-image:hover {
-            transform: scale(1.02);
-        }
-        
-        .message-video {
-            max-width: 100%;
-            max-height: 240px;
-            border-radius: 12px;
-            margin-top: 8px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .chat-input-area {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--dark-black);
-            padding: 12px 24px; /* Espacios amplios */
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            height: 80px; /* Ajustado para mejor UX */
-            box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2); /* Sombras suaves */
-        }
-        
-        .chat-input {
-            flex: 1;
-            padding: 12px 16px;
-            background: var(--light-black);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 24px; /* Bordes más suaves */
-            color: var(--text-white);
-            font-size: 14px;
-            transition: all 0.2s ease;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .chat-input:focus {
-            outline: none;
-            border-color: var(--primary-red);
-            box-shadow: inset 0 2px 4px rgba(229, 9, 20, 0.1);
-        }
-        
-        .chat-input::placeholder {
-            color: var(--text-gray);
-        }
-        
-        .chat-action-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-white);
-            font-size: 20px;
-            cursor: pointer;
-            width: 48px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .chat-action-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        .chat-action-btn.primary {
-            background: var(--primary-red);
-        }
-        
-        .chat-action-btn.primary:hover {
-            background: var(--dark-red);
-            box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
-        }
-        
-        .media-options {
-            position: fixed;
-            bottom: 80px;
-            right: 24px;
-            background: var(--medium-black);
-            border-radius: 12px;
-            padding: 8px;
-            display: none;
-            flex-direction: column;
-            gap: 8px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 100;
-        }
-        
-        .media-options.active {
-            display: flex;
-        }
-        
-        .media-option {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: transparent;
-            border: none;
-            color: var(--text-white);
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            min-width: 180px;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .media-option:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-2px);
-        }
-        
-        /* VIDEO MODAL mejorado con contenedores limpios */
-        .video-modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.98);
-            display: none;
-            z-index: 3000;
-            overflow-y: auto;
-            padding: 24px; /* Espacios amplios */
-        }
-        
-        .video-modal-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 16px;
-            position: relative;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4); /* Sombras suaves */
-        }
-        
-        .video-modal-header {
-            display: flex;
-            justify-content: flex-start;
-            align-items: center;
-            margin-bottom: 24px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            padding: 8px 0;
-        }
-        
-        .close-video-modal {
-            background: rgba(0, 0, 0, 0.8);
-            border: none;
-            color: white;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 11;
-            margin-left: 16px;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .close-video-modal:hover {
-            background: var(--primary-red);
-            transform: rotate(90deg); /* Efecto moderno */
-        }
-        
-        .video-player-container {
-            background: black;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 24px;
-            position: relative;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .video-player {
-            width: 100%;
-            height: auto;
-            max-height: 65vh;
-            display: block;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-        }
-        
-        .video-details {
-            background: var(--medium-black);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .video-title-large {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--text-white);
-            line-height: 1.4;
-        }
-        
-        .video-actions-compact {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-top: 16px;
-        }
-        
-        .video-action-button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: transparent;
-            border: none;
-            color: var(--text-white);
-            cursor: pointer;
-            padding: 10px 16px;
-            transition: all 0.2s ease;
-            border-radius: 8px;
-            font-size: 14px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .video-action-button:hover {
-            color: var(--primary-red);
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-2px);
-        }
-        
-        .video-action-button.download {
-            color: var(--success-green);
-        }
-        
-        .video-action-button.download:hover {
-            color: #46d369;
-            background: rgba(70, 211, 105, 0.1);
-        }
-        
-        .video-action-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px;
-            height: 20px;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 48px 24px;
-        }
-        
-        .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--primary-red);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 48px 24px;
-            color: var(--text-gray);
-        }
-        
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        
-        .empty-state h3 {
-            font-size: 24px;
-            margin-bottom: 12px;
-            color: var(--text-white);
-        }
-        
-        .empty-state p {
-            font-size: 16px;
-            max-width: 400px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 80px;
-            right: 24px;
-            padding: 16px 24px;
-            background: var(--medium-black);
-            border-radius: 12px;
-            border-left: 4px solid var(--success-green);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            display: none;
-            z-index: 5000;
-            max-width: 400px;
-            animation: slideIn 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 14px;
-        }
-        
-        .notification.error {
-            border-left-color: var(--error-red);
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        /* Mejora en responsividad: diseño totalmente responsivo */
-        @media (max-width: 1024px) {
-            .hero-section {
-                height: 40vh;
-            }
-            
-            .hero-title {
-                font-size: 32px;
-            }
-            
-            .hero-subtitle {
-                font-size: 16px;
-            }
-            
-            .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                gap: 20px;
-            }
-            
-            .page-content {
-                padding: 24px;
-            }
-            
-            .upload-container {
-                padding: 32px;
-            }
-        }
+            --primary-red: #d32f2f; --dark-red: #b71c1c; --light-red: #ff6659;
+            --black: #121212; --dark-gray: #1e1e1e; --medium-gray: #2d2d2d;
+            --light-gray: #e0e0e0; --white: #ffffff;
+            --shadow: 0 4px 12px rgba(0,0,0,0.5); --border-radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: var(--black); color: var(--white); line-height: 1.6; }
+        .screen { display: none; min-height: 100vh; }
+        .screen.active { display: block; }
+        
+        /* Header principal */
+        .main-header { background: var(--dark-gray); padding: 1.5rem 2rem; display: flex; 
+            justify-content: space-between; align-items: center; box-shadow: var(--shadow); 
+            border-bottom: 3px solid var(--primary-red); position: sticky; top: 0; z-index: 1000; }
+        .main-header h1 { font-size: 1.8rem; color: var(--primary-red); display: flex; align-items: center; gap: 10px; }
+        .upload-button { background: var(--primary-red); color: var(--white); border: none; 
+            padding: 0.8rem 1.5rem; border-radius: var(--border-radius); font-weight: 600; 
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .upload-button:hover { background: var(--dark-red); transform: translateY(-2px); }
+        
+        /* Grid de videos */
+        .video-grid-container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .video-grid-container h2 { font-size: 1.8rem; margin-bottom: 1.5rem; color: var(--light-gray); }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+        .video-card { background: var(--dark-gray); border-radius: var(--border-radius); overflow: hidden; 
+            box-shadow: var(--shadow); transition: all 0.3s; cursor: pointer; border: 2px solid transparent; }
+        .video-card:hover { transform: translateY(-8px); border-color: var(--primary-red); }
+        .video-thumbnail { position: relative; width: 100%; height: 200px; overflow: hidden; background: var(--medium-gray); }
+        .video-thumbnail img { width: 100%; height: 100%; object-fit: cover; }
+        .video-duration { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); 
+            color: var(--white); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+        .video-info { padding: 1.2rem; }
+        .video-info h3 { font-size: 1.1rem; margin-bottom: 0.5rem; display: -webkit-box; 
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .video-meta { display: flex; justify-content: space-between; color: var(--light-gray); font-size: 0.85rem; }
+        
+        /* Pantalla de subida */
+        .upload-header { background: var(--dark-gray); padding: 1.5rem 2rem; display: flex; align-items: center; 
+            box-shadow: var(--shadow); border-bottom: 3px solid var(--primary-red); }
+        .back-button { background: var(--medium-gray); color: var(--white); border: none; width: 40px; height: 40px; 
+            border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; 
+            font-size: 1.2rem; transition: all 0.3s; }
+        .back-button:hover { background: var(--primary-red); transform: scale(1.1); }
+        .upload-container { max-width: 800px; margin: 2rem auto; padding: 0 2rem; }
+        .upload-area { background: var(--dark-gray); border: 3px dashed var(--primary-red); 
+            border-radius: var(--border-radius); padding: 3rem 2rem; text-align: center; cursor: pointer; 
+            transition: all 0.3s; }
+        .upload-area:hover { background: var(--medium-gray); border-color: var(--light-red); }
+        .upload-area i { font-size: 4rem; color: var(--primary-red); margin-bottom: 1.5rem; }
+        .upload-progress-container { background: var(--medium-gray); border-radius: 8px; padding: 1.2rem; margin: 1.5rem 0; }
+        .progress-bar { width: 100%; height: 12px; background: var(--black); border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary-red); border-radius: 6px; width: 0%; transition: width 0.3s; }
+        
+        /* Pantalla de reproducción */
+        .player-container { max-width: 1000px; margin: 2rem auto; padding: 0 2rem; }
+        .video-player-wrapper { background: var(--black); border-radius: var(--border-radius); overflow: hidden; margin-bottom: 2rem; }
+        #video-player { width: 100%; max-height: 70vh; display: block; }
+        .download-btn { background: var(--primary-red); color: var(--white); border: none; 
+            padding: 0.9rem 2rem; border-radius: var(--border-radius); font-weight: 600; cursor: pointer; 
+            transition: all 0.3s; display: flex; align-items: center; gap: 10px; }
+        .download-btn:hover { background: var(--dark-red); transform: translateY(-2px); }
         
         @media (max-width: 768px) {
-            .hero-section {
-                height: 35vh;
-            }
-            
-            .hero-title {
-                font-size: 28px;
-            }
-            
-            .hero-subtitle {
-                font-size: 15px;
-            }
-            
-            .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-                gap: 16px;
-            }
-            
-            .video-thumbnail {
-                height: 100px;
-            }
-            
-            .upload-container {
-                padding: 24px;
-            }
-            
-            .media-options {
-                bottom: 80px;
-                right: 16px;
-            }
-            
-            .chat-messages {
-                padding: 12px 16px;
-            }
-            
-            .chat-input-area {
-                padding: 10px 16px;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .hero-section {
-                height: 30vh;
-            }
-            
-            .hero-title {
-                font-size: 24px;
-            }
-            
-            .hero-subtitle {
-                font-size: 14px;
-            }
-            
-            .videos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-                gap: 12px;
-            }
-            
-            .video-thumbnail {
-                height: 80px;
-            }
-            
-            .video-title {
-                font-size: 13px;
-            }
-            
-            .chat-input-area {
-                padding: 8px 12px;
-            }
-            
-            .header-btn {
-                width: 36px;
-                height: 36px;
-                font-size: 18px;
-            }
-            
-            .btn-label {
-                font-size: 8px;
-            }
-            
-            .upload-container {
-                padding: 20px;
-            }
-        }
-        
-        .fade-in-up {
-            animation: fadeInUp 0.3s ease;
-        }
-        
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        /* SCROLLBAR mejorada para estilo tecnológico */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: var(--dark-black);
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: var(--primary-red);
-            border-radius: 4px;
-            border: 2px solid var(--dark-black);
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--dark-red);
+            .video-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem; }
+            .main-header, .upload-header { padding: 1rem; }
+            .video-grid-container, .upload-container, .player-container { padding: 1rem; }
         }
     </style>
 </head>
 <body>
-    <!-- NOTIFICACIÓN -->
-    <div class="notification" id="notification"></div>
-    
-    <!-- HEADER PRINCIPAL (solo visible en home) -->
-    <header class="app-header" id="appHeader">
-        <div class="logo" onclick="goHome()">
-            <i class="fas fa-video logo-icon"></i>
-            <span>CPVideos</span>
-        </div>
-        
-        <div class="header-actions">
-            <button class="header-btn" onclick="showUploadPage()" title="Subir video">
+    <!-- Pantalla Principal -->
+    <div id="main-screen" class="screen active">
+        <header class="main-header">
+            <h1><i class="fas fa-play-circle"></i>CPVideos</h1>
+            <button id="upload-btn" class="upload-button"><i class="fas fa-upload"></i> Subir Video</button>
+        </header>
+        <main class="video-grid-container">
+            <h2>Videos</h2>
+            <div id="video-grid" class="video-grid"></div>
+        </main>
+    </div>
+
+    <!-- Pantalla de Subida -->
+    <div id="upload-screen" class="screen">
+        <header class="upload-header">
+            <button id="back-from-upload-btn" class="back-button"><i class="fas fa-arrow-left"></i></button>
+            <h2>Subir Video</h2>
+        </header>
+        <div class="upload-container">
+            <div class="upload-area" id="upload-area">
                 <i class="fas fa-cloud-upload-alt"></i>
-                <span class="btn-label">Subir</span>
-            </button>
-            
-            <button class="header-btn" onclick="showChatPage()" title="Chat">
-                <i class="fas fa-comments"></i>
-                <span class="btn-label">Chat</span>
-                <div class="unread-badge" id="unreadBadge" style="display: none;">0</div>
-            </button>
-        </div>
-    </header>
-
-    <!-- PÁGINA PRINCIPAL -->
-    <div class="page active" id="homePage">
-        <!-- Nueva Hero Section -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1 class="hero-title">Bienvenido a CPVideos</h1>
-                <p class="hero-subtitle">Descubre, sube y comparte videos con una experiencia fluida y moderna. Explora nuestra colección y únete a la conversación.</p>
+                <h3>Arrastra y suelta tu video</h3>
+                <p>o haz clic para seleccionar</p>
+                <input type="file" id="video-input" accept="video/*" style="display: none;">
+                <button id="select-video-btn" class="upload-button" style="margin-top: 1rem;">Seleccionar Video</button>
             </div>
-        </section>
-        
-        <div class="home-content">
-            <div class="videos-grid" id="videosGrid">
-                <!-- Videos cargados dinámicamente -->
-            </div>
-            <div class="loading" id="videosLoading">
-                <div class="loading-spinner"></div>
-                <p>Cargando videos...</p>
-            </div>
-            <div class="empty-state" id="noVideos" style="display: none;">
-                <i class="fas fa-video-slash"></i>
-                <h3>No hay videos</h3>
-                <p>Sé el primero en subir un video</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA DE SUBIR VÍDEO -->
-    <div class="page" id="uploadPage">
-        <div class="page-header">
-            <button class="back-btn" onclick="goHome()">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <h2 class="page-title">Subir video</h2>
-            <span class="upload-counter" id="uploadCounter">0</span>
-        </div>
-        
-        <div class="page-content">
-            <div class="upload-container">
-                <div class="upload-title">Sube tu video</div>
-                <div class="upload-area" id="uploadArea">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3>Selecciona tu video</h3>
-                    <p>Arrastra y suelta o haz clic para seleccionar</p>
-                    <p style="font-size: 13px; margin-top: 8px; color: var(--text-gray); line-height: 1.5;">
-                        Formatos: MP4, WebM, OGG, MOV, MKV<br>
-                        Máximo: 500MB
-                    </p>
-                    <input type="file" id="videoFile" accept="video/*" style="display: none;">
-                </div>
-                
-                <div class="upload-file-list" id="uploadFileList"></div>
-                
-                <div class="progress-container" id="progressContainer"></div>
-                
-                <div style="display: flex; gap: 16px; margin-top: 32px;">
-                    <button class="btn btn-secondary" id="cancelUpload" style="flex: 1;">Cancelar</button>
-                    <button class="btn btn-primary" id="submitUpload" disabled style="flex: 1;">Subir video</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PÁGINA DE CHAT -->
-    <div class="page" id="chatPage">
-        <div class="chat-header">
-            <button class="back-btn" onclick="goHome()">
-                <i class="fas fa-arrow-left"></i>
-            </button>
-            <div class="chat-header-content">
-                <div class="chat-header-top">
-                    <div class="chat-title">Conversación</div>
-                    <div class="online-count">
-                        <span class="online-dot"></span>
-                        <span id="onlineCount">0</span> usuarios en línea
+            <div id="upload-details" class="upload-details" style="display: none; background: var(--dark-gray); padding: 2rem; border-radius: var(--border-radius); margin-top: 2rem;">
+                <h3>Procesando video...</h3>
+                <div class="upload-progress-container">
+                    <div class="progress-info">
+                        <span id="progress-text">0%</span>
+                        <span id="upload-speed">0 KB/s</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="upload-progress" class="progress-fill"></div>
                     </div>
                 </div>
-                <div class="user-typing" id="userTyping"></div>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <!-- Mensajes cargados dinámicamente -->
-        </div>
-        
-        <div class="chat-input-area">
-            <button class="chat-action-btn" onclick="toggleMediaOptions()" title="Adjuntar archivo">
-                <i class="fas fa-plus"></i>
-            </button>
-            
-            <input type="text" class="chat-input" id="chatInput" placeholder="Escribe un mensaje..." 
-                   onkeypress="if(event.key === 'Enter') sendMessage()">
-            
-            <button class="chat-action-btn primary" onclick="sendMessage()" title="Enviar mensaje">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-        
-        <!-- OPCIONES DE MEDIA -->
-        <div class="media-options" id="mediaOptions">
-            <button class="media-option" onclick="attachImage()">
-                <i class="fas fa-image"></i>
-                <span>Enviar imagen</span>
-                <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            </button>
-            <button class="media-option" onclick="attachVideo()">
-                <i class="fas fa-video"></i>
-                <span>Enviar video</span>
-                <input type="file" id="videoInput" accept="video/*" style="display: none;">
-            </button>
-        </div>
-    </div>
-
-    <!-- VIDEO MODAL -->
-    <div class="video-modal-overlay" id="videoModal">
-        <div class="video-modal-content">
-            <div class="video-modal-header">
-                <button class="close-video-modal" id="closeVideoModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="video-player-container">
-                <video class="video-player" id="videoPlayer" controls playsinline controlsList="nodownload">
-                    Tu navegador no soporta videos HTML5.
-                </video>
-            </div>
-            
-            <div class="video-details" id="videoDetails">
-                <!-- Detalles cargados dinámicamente -->
+                <div id="upload-actions" style="display: none; margin-top: 1.5rem;">
+                    <button id="cancel-upload-btn" class="upload-button" style="background: var(--medium-gray);">Cancelar</button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Pantalla de Reproducción -->
+    <div id="player-screen" class="screen">
+        <header class="upload-header">
+            <button id="close-player-btn" class="back-button"><i class="fas fa-times"></i></button>
+            <h2>Reproduciendo Video</h2>
+        </header>
+        <div class="player-container">
+            <div class="video-player-wrapper">
+                <video id="video-player" controls autoplay></video>
+            </div>
+            <div style="background: var(--dark-gray); padding: 2rem; border-radius: var(--border-radius);">
+                <h3 id="video-player-title">Título del Video</h3>
+                <div class="video-meta" style="margin: 1rem 0; color: var(--light-gray);">
+                    <span id="video-duration"><i class="fas fa-clock"></i> 0:00</span>
+                    <span id="video-views"><i class="fas fa-eye"></i> 0 vistas</span>
+                </div>
+                <button id="download-btn" class="download-btn"><i class="fas fa-download"></i> Descargar Video</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        // El código JavaScript se mantiene exactamente igual, ya que no se indicó explícitamente modificarlo.
-        // ============================================
-        // CONFIGURACIÓN
-        // ============================================
-        const API_BASE = window.location.origin;
-        const WS_URL = API_BASE.replace('http', 'ws') + '/ws';
+        // Variables globales
+        let videos = [];
+        let selectedFile = null;
+        let uploadInProgress = false;
+        let socket = io();
         
-        let currentUser = null;
-        let currentVideo = null;
-        let unreadMessages = 0;
-        let isTyping = false;
-        let typingTimeout = null;
-        let onlineUsers = 0;
+        // Elementos del DOM
+        const screens = {
+            main: document.getElementById('main-screen'),
+            upload: document.getElementById('upload-screen'),
+            player: document.getElementById('player-screen')
+        };
         
-        // ============================================
-        // SISTEMA DE WEBSOCKETS
-        // ============================================
-        let ws = null;
-        let isWsConnected = false;
-
-        function initWebSocket() {
-            if (ws) ws.close();
-            
-            try {
-                ws = new WebSocket(WS_URL);
-                
-                ws.onopen = () => {
-                    console.log('✅ WebSocket conectado');
-                    isWsConnected = true;
-                    
-                    // Autenticar
-                    const token = localStorage.getItem('auth_token');
-                    if (token) {
-                        ws.send(JSON.stringify({
-                            type: 'AUTH',
-                            token: token
-                        }));
-                    }
-                };
-                
-                ws.onmessage = (event) => {
-                    try {
-                        const data = JSON.parse(event.data);
-                        handleWebSocketMessage(data);
-                    } catch (error) {
-                        console.error('Error procesando mensaje:', error);
-                    }
-                };
-                
-                ws.onclose = () => {
-                    console.log('🔌 WebSocket cerrado');
-                    isWsConnected = false;
-                    setTimeout(initWebSocket, 3000);
-                };
-                
-                ws.onerror = (error) => {
-                    console.error('❌ Error en WebSocket:', error);
-                };
-                
-            } catch (error) {
-                console.error('Error inicializando WebSocket:', error);
-            }
+        // Navegación entre pantallas
+        function switchScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+            if (screenName === 'main') loadVideos();
         }
-
-        function handleWebSocketMessage(data) {
-            switch(data.type) {
-                case 'AUTH_SUCCESS':
-                    currentUser = data.user;
-                    console.log('✅ Usuario autenticado:', currentUser.username);
-                    loadVideos();
-                    loadRecentMessages();
-                    requestOnlineCount();
-                    break;
-                    
-                case 'NEW_MESSAGE':
-                    handleNewMessage(data.message);
-                    break;
-                    
-                case 'USER_TYPING':
-                    handleUserTyping(data);
-                    break;
-                    
-                case 'USER_STOPPED_TYPING':
-                    if (data.userId !== currentUser?.id) {
-                        document.getElementById('userTyping').textContent = '';
-                    }
-                    break;
-                    
-                case 'ONLINE_COUNT':
-                    onlineUsers = data.count;
-                    document.getElementById('onlineCount').textContent = onlineUsers;
-                    break;
-                    
-                case 'RECENT_MESSAGES':
-                    displayRecentMessages(data.messages);
-                    break;
-                    
-                case 'VIDEO_UPLOADED':
-                    if (data.video) addVideoToGrid(data.video);
-                    break;
-                    
-                case 'VIDEO_DELETED':
-                    removeVideoFromGrid(data.videoId);
-                    break;
-                    
-                case 'VIDEO_LIKE_UPDATE':
-                    updateVideoLikes(data.videoId, data.likes, data.dislikes);
-                    break;
-                    
-                case 'VIDEO_VIEW_UPDATE':
-                    updateVideoViews(data.videoId, data.views);
-                    break;
-                    
-                case 'NEW_COMMENT':
-                    if (currentVideo && currentVideo.id === data.videoId) {
-                        addCommentToVideo(data.comment);
-                    }
-                    break;
-            }
-        }
-
-        // ============================================
-        // MANEJADORES DE WEBSOCKET
-        // ============================================
-        function handleNewMessage(message) {
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) {
-                const messageDiv = createMessageElement(message);
-                chatMessages.appendChild(messageDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-                
-                // Incrementar contador de mensajes no leídos si no está en la página de chat
-                if (!document.getElementById('chatPage').classList.contains('active')) {
-                    unreadMessages++;
-                    updateUnreadBadge();
-                }
-            }
-        }
-
-        function handleUserTyping(data) {
-            if (data.userId !== currentUser?.id) {
-                const actions = {
-                    'typing': 'está escribiendo...',
-                    'uploading_image': 'está subiendo una imagen...',
-                    'uploading_video': 'está subiendo un video...'
-                };
-                document.getElementById('userTyping').textContent = 
-                    `${data.username} ${actions[data.action] || 'está escribiendo...'}`;
-            }
-        }
-
-        // ============================================
-        // AUTENTICACIÓN
-        // ============================================
-        async function checkAuth() {
-            const token = localStorage.getItem('auth_token');
-            const userData = localStorage.getItem('user_data');
-            
-            if (!token || !userData) {
-                window.location.href = '/login.html';
-                return;
-            }
-            
-            try {
-                currentUser = JSON.parse(userData);
-                initWebSocket();
-                loadVideos();
-            } catch (error) {
-                console.error('Error en autenticación:', error);
-                window.location.href = '/login.html';
-            }
-        }
-
-        // ============================================
-        // NAVEGACIÓN ENTRE PÁGINAS
-        // ============================================
-        function goHome() {
-            showPage('home');
-        }
-
-        function showUploadPage() {
-            showPage('upload');
-            resetUploadForm();
-        }
-
-        function showChatPage() {
-            showPage('chat');
-            unreadMessages = 0;
-            updateUnreadBadge();
-            scrollToBottom();
-        }
-
-        function showPage(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId + 'Page').classList.add('active');
-            
-            // Mostrar/ocultar header principal
-            const appHeader = document.getElementById('appHeader');
-            if (pageId === 'home') {
-                appHeader.classList.remove('hidden');
-            } else {
-                appHeader.classList.add('hidden');
-            }
-            
-            // Cerrar modal de video si está abierto
-            if (pageId !== 'home') {
-                closeVideoModal();
-            }
-        }
-
-        // ============================================
-        // SISTEMA DE VIDEOS
-        // ============================================
+        
+        // Cargar videos desde la API
         async function loadVideos() {
             try {
-                const response = await fetch(`${API_BASE}/api/videos`);
-                if (response.ok) {
-                    const data = await response.json();
-                    renderVideosGrid(data.videos || []);
-                }
+                const response = await fetch('/api/videos');
+                videos = await response.json();
+                renderVideoGrid();
             } catch (error) {
                 console.error('Error cargando videos:', error);
+                document.getElementById('video-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--light-gray);">Error cargando videos</div>';
             }
         }
-
-        function renderVideosGrid(videos) {
-            const grid = document.getElementById('videosGrid');
-            const loading = document.getElementById('videosLoading');
-            const emptyState = document.getElementById('noVideos');
-            
-            loading.style.display = 'none';
-            
-            if (!videos || videos.length === 0) {
-                emptyState.style.display = 'block';
+        
+        // Renderizar grid de videos
+        function renderVideoGrid() {
+            const grid = document.getElementById('video-grid');
+            if (videos.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--light-gray);">No hay videos. ¡Sube el primero!</div>';
                 return;
             }
             
-            emptyState.style.display = 'none';
-            grid.innerHTML = '';
-            
-            videos.forEach(video => {
-                const card = document.createElement('div');
-                card.className = 'video-card fade-in-up';
-                card.dataset.videoId = video.id;
-                
-                const duration = video.duration ? formatDuration(video.duration) : '0:00';
-                const thumbnailUrl = video.thumbnail_url || 
-                    'https://placehold.co/180x100/141414/e50914?text=Video';
-                
-                card.innerHTML = `
+            grid.innerHTML = videos.map(video => `
+                <div class="video-card" data-id="${video.id}">
                     <div class="video-thumbnail">
-                        <img src="\( {thumbnailUrl}" alt=" \){video.title}" loading="lazy"
-                             onerror="this.onerror=null;this.src='https://placehold.co/180x100/141414/e50914?text=Video'">
-                        <span class="video-duration">${duration}</span>
+                        <img src="${video.thumbnail || 'https://placehold.co/400x225/d32f2f/000000?text=Video'}" alt="${video.title}">
+                        <span class="video-duration">${video.duration || '0:00'}</span>
                     </div>
                     <div class="video-info">
-                        <div class="video-title">${video.title}</div>
-                    </div>
-                `;
-                
-                card.addEventListener('click', () => playVideo(video));
-                grid.appendChild(card);
-            });
-        }
-
-        function addVideoToGrid(video) {
-            const grid = document.getElementById('videosGrid');
-            const emptyState = document.getElementById('noVideos');
-            
-            if (emptyState.style.display === 'block') {
-                emptyState.style.display = 'none';
-            }
-            
-            const card = document.createElement('div');
-            card.className = 'video-card fade-in-up';
-            card.dataset.videoId = video.id;
-            
-            const duration = video.duration ? formatDuration(video.duration) : '0:00';
-            const thumbnailUrl = video.thumbnail_url || 
-                'https://placehold.co/180x100/141414/e50914?text=Video';
-            
-            card.innerHTML = `
-                <div class="video-thumbnail">
-                    <img src="\( {thumbnailUrl}" alt=" \){video.title}" loading="lazy"
-                         onerror="this.onerror=null;this.src='https://placehold.co/180x100/141414/e50914?text=Video'">
-                    <span class="video-duration">${duration}</span>
-                </div>
-                <div class="video-info">
-                    <div class="video-title">${video.title}</div>
-                </div>
-            `;
-            
-            card.addEventListener('click', () => playVideo(video));
-            grid.prepend(card);
-        }
-
-        function removeVideoFromGrid(videoId) {
-            const card = document.querySelector(`.video-card[data-video-id="${videoId}"]`);
-            if (card) card.remove();
-            
-            const grid = document.getElementById('videosGrid');
-            if (grid.children.length === 0) {
-                document.getElementById('noVideos').style.display = 'block';
-            }
-        }
-
-        function updateVideoLikes(videoId, likes, dislikes) {
-            if (currentVideo && currentVideo.id === videoId) {
-                currentVideo.likes = likes;
-                currentVideo.dislikes = dislikes;
-            }
-        }
-
-        function updateVideoViews(videoId, views) {
-            if (currentVideo && currentVideo.id === videoId) {
-                currentVideo.views = views;
-            }
-        }
-
-        // ============================================
-        // REPRODUCTOR DE VIDEO
-        // ============================================
-        async function playVideo(video) {
-            currentVideo = video;
-            
-            const modal = document.getElementById('videoModal');
-            modal.style.display = 'block';
-            
-            const player = document.getElementById('videoPlayer');
-            player.src = video.video_url || `\( {API_BASE} \){video.video_path}`;
-            
-            // Registrar vista
-            try {
-                await fetch(`\( {API_BASE}/api/videos/ \){video.id}/view`, { method: 'POST' });
-            } catch (error) {
-                console.log('Error contando vista:', error);
-            }
-            
-            // Cargar detalles
-            loadVideoDetails(video.id);
-        }
-
-        async function loadVideoDetails(videoId) {
-            try {
-                const response = await fetch(`\( {API_BASE}/api/videos/ \){videoId}`);
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    renderVideoDetails(data.video);
-                }
-            } catch (error) {
-                console.error('Error cargando detalles:', error);
-            }
-        }
-
-        function renderVideoDetails(video) {
-            const detailsDiv = document.getElementById('videoDetails');
-            
-            detailsDiv.innerHTML = `
-                <h1 class="video-title-large">${video.title}</h1>
-                
-                <div class="video-actions-compact">
-                    <button class="video-action-button download" onclick="downloadCurrentVideo()">
-                        <div class="video-action-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <div class="video-action-label">Descargar</div>
-                        </div>
-                    </button>
-                </div>
-            `;
-        }
-
-        function closeVideoModal() {
-            const modal = document.getElementById('videoModal');
-            modal.style.display = 'none';
-            
-            const player = document.getElementById('videoPlayer');
-            if (player) {
-                player.pause();
-                player.src = '';
-            }
-            
-            currentVideo = null;
-        }
-
-        async function downloadCurrentVideo() {
-            if (!currentVideo) return;
-            
-            try {
-                const videoUrl = currentVideo.video_url || `\( {API_BASE} \){currentVideo.video_path}`;
-                const response = await fetch(videoUrl);
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                
-                const safeTitle = currentVideo.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                const filename = `${safeTitle || 'video'}.mp4`;
-                
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(url);
-                
-                showNotification('✅ Descarga iniciada');
-            } catch (error) {
-                console.error('Error descargando video:', error);
-                showNotification('Error al descargar el video', 'error');
-            }
-        }
-
-        // ============================================
-        // SISTEMA DE UPLOAD
-        // ============================================
-        function setupUploadListeners() {
-            const uploadArea = document.getElementById('uploadArea');
-            const videoFileInput = document.getElementById('videoFile');
-            const submitUploadBtn = document.getElementById('submitUpload');
-            const cancelUploadBtn = document.getElementById('cancelUpload');
-            
-            uploadArea.addEventListener('click', () => {
-                videoFileInput.click();
-            });
-            
-            videoFileInput.addEventListener('change', handleFileSelect);
-            
-            uploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = 'var(--primary-red)';
-                uploadArea.style.backgroundColor = 'rgba(255, 0, 0, 0.05)';
-            });
-            
-            uploadArea.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                uploadArea.style.backgroundColor = 'transparent';
-            });
-            
-            uploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                uploadArea.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                uploadArea.style.backgroundColor = 'transparent';
-                
-                if (e.dataTransfer.files.length > 0) {
-                    videoFileInput.files = e.dataTransfer.files;
-                    handleFileSelect({ target: { files: e.dataTransfer.files } });
-                }
-            });
-            
-            submitUploadBtn.addEventListener('click', uploadVideo);
-            cancelUploadBtn.addEventListener('click', goHome);
-        }
-
-        function handleFileSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const maxSize = 500 * 1024 * 1024;
-            const fileExtension = file.name.toLowerCase().split('.').pop();
-            const validExtensions = ['mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi'];
-            
-            if (file.size > maxSize) {
-                showNotification('El video es demasiado grande (máximo 500MB)', 'error');
-                return;
-            }
-            
-            if (!validExtensions.includes(fileExtension)) {
-                showNotification('Formato no válido', 'error');
-                return;
-            }
-            
-            const fileList = document.getElementById('uploadFileList');
-            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
-            
-            fileList.innerHTML = `
-                <div class="upload-file-item">
-                    <div class="file-info">
-                        <i class="fas fa-file-video file-icon"></i>
-                        <div class="file-details">
-                            <div class="file-name">${file.name}</div>
-                            <div class="file-size">${fileSizeMB} MB • Listo para subir</div>
+                        <h3>${video.title}</h3>
+                        <div class="video-meta">
+                            <span>${video.size || '0 MB'}</span>
+                            <span>${new Date(video.uploaded_at).toLocaleDateString()}</span>
                         </div>
                     </div>
-                    <button class="file-remove" onclick="removeSelectedFile()">
-                        <i class="fas fa-times"></i>
-                    </button>
                 </div>
-            `;
+            `).join('');
             
-            fileList.style.display = 'block';
-            document.getElementById('submitUpload').disabled = false;
-        }
-
-        function removeSelectedFile() {
-            document.getElementById('videoFile').value = '';
-            document.getElementById('uploadFileList').innerHTML = '';
-            document.getElementById('uploadFileList').style.display = 'none';
-            document.getElementById('submitUpload').disabled = true;
-        }
-
-        function resetUploadForm() {
-            document.getElementById('videoFile').value = '';
-            document.getElementById('uploadFileList').innerHTML = '';
-            document.getElementById('uploadFileList').style.display = 'none';
-            document.getElementById('progressContainer').innerHTML = '';
-            document.getElementById('progressContainer').style.display = 'none';
-            document.getElementById('submitUpload').disabled = true;
-        }
-
-        async function uploadVideo() {
-            const fileInput = document.getElementById('videoFile');
-            
-            if (!fileInput.files[0]) {
-                showNotification('Selecciona un video primero', 'error');
-                return;
-            }
-            
-            const formData = new FormData();
-            formData.append('video', fileInput.files[0]);
-            
-            const submitBtn = document.getElementById('submitUpload');
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
-            
-            const progressContainer = document.getElementById('progressContainer');
-            progressContainer.innerHTML = `
-                <div class="progress-item">
-                    <div class="progress-header">
-                        <div class="progress-filename">${fileInput.files[0].name}</div>
-                        <div class="progress-percentage">0%</div>
-                    </div>
-                    <div class="progress-bar-container">
-                        <div class="progress-bar" style="width: 0%"></div>
-                    </div>
-                    <div class="progress-status">
-                        <span>Iniciando subida...</span>
-                        <span class="progress-speed">0 KB/s</span>
-                    </div>
-                </div>
-            `;
-            progressContainer.style.display = 'block';
-            
-            const progressBar = progressContainer.querySelector('.progress-bar');
-            const progressPercent = progressContainer.querySelector('.progress-percentage');
-            const progressStatus = progressContainer.querySelector('.progress-status span:first-child');
-            const progressSpeed = progressContainer.querySelector('.progress-speed');
-            
-            try {
-                const token = localStorage.getItem('auth_token');
-                const xhr = new XMLHttpRequest();
-                
-                xhr.upload.addEventListener('progress', (event) => {
-                    if (event.lengthComputable) {
-                        const percentComplete = Math.round((event.loaded / event.total) * 100);
-                        progressBar.style.width = `${percentComplete}%`;
-                        progressPercent.textContent = `${percentComplete}%`;
-                        
-                        const speed = event.loaded / 1024;
-                        progressSpeed.textContent = `${Math.round(speed)} KB/s`;
-                        progressStatus.textContent = 'Subiendo...';
-                    }
-                });
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        const response = JSON.parse(xhr.responseText);
-                        progressBar.classList.add('progress-bar-success');
-                        progressStatus.textContent = '✅ Video subido exitosamente';
-                        
-                        setTimeout(() => {
-                            showNotification('Video subido exitosamente');
-                            goHome();
-                        }, 1000);
-                    } else {
-                        progressBar.classList.add('progress-bar-error');
-                        progressStatus.textContent = '❌ Error al subir video';
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = 'Subir video';
-                    }
-                };
-                
-                xhr.onerror = function() {
-                    progressBar.classList.add('progress-bar-error');
-                    progressStatus.textContent = '❌ Error de conexión';
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = 'Subir video';
-                };
-                
-                xhr.open('POST', `${API_BASE}/api/videos/upload`);
-                xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-                xhr.send(formData);
-                
-            } catch (error) {
-                console.error('Error subiendo video:', error);
-                showNotification('Error al subir video', 'error');
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Subir video';
-            }
-        }
-
-        // ============================================
-        // SISTEMA DE CHAT
-        // ============================================
-        function createMessageElement(message) {
-            const div = document.createElement('div');
-            div.className = `message ${message.user_id === currentUser.id ? 'sent' : 'received'}`;
-            
-            let content = `
-                <div class="message-header">${message.username}</div>
-                <div class="message-content">${message.content}</div>
-                <div class="message-info">
-                    <span class="message-time">${getTimeAgo(message.created_at)}</span>
-                </div>
-            `;
-            
-            if (message.media_type === 'image' && message.media_url) {
-                content = `
-                    <div class="message-header">${message.username}</div>
-                    <img src="\( {message.media_url}" class="message-image" onclick="openMedia(' \){message.media_url}')">
-                    \( {message.content ? `<div class="message-content"> \){message.content}</div>` : ''}
-                    <div class="message-info">
-                        <span class="message-time">${getTimeAgo(message.created_at)}</span>
-                    </div>
-                `;
-            } else if (message.media_type === 'video' && message.media_url) {
-                content = `
-                    <div class="message-header">${message.username}</div>
-                    <video class="message-video" controls onclick="openMedia('${message.media_url}')">
-                        <source src="${message.media_url}" type="video/mp4">
-                    </video>
-                    \( {message.content ? `<div class="message-content"> \){message.content}</div>` : ''}
-                    <div class="message-info">
-                        <span class="message-time">${getTimeAgo(message.created_at)}</span>
-                    </div>
-                `;
-            }
-            
-            div.innerHTML = content;
-            return div;
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            const message = input.value.trim();
-            
-            if (!message && !isTyping) return;
-            
-            if (message && ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'MESSAGE',
-                    content: message,
-                    user_id: currentUser.id,
-                    username: currentUser.username
-                }));
-                
-                input.value = '';
-                
-                // Notificar que dejó de escribir
-                if (isTyping) {
-                    isTyping = false;
-                    ws.send(JSON.stringify({
-                        type: 'STOPPED_TYPING',
-                        user_id: currentUser.id
-                    }));
-                }
-            }
-        }
-
-        function onTyping() {
-            const input = document.getElementById('chatInput');
-            
-            if (!isTyping && input.value.trim()) {
-                isTyping = true;
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify({
-                        type: 'TYPING',
-                        user_id: currentUser.id,
-                        username: currentUser.username,
-                        action: 'typing'
-                    }));
-                }
-            }
-            
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                if (isTyping) {
-                    isTyping = false;
-                    if (ws && ws.readyState === WebSocket.OPEN) {
-                        ws.send(JSON.stringify({
-                            type: 'STOPPED_TYPING',
-                            user_id: currentUser.id
-                        }));
-                    }
-                }
-            }, 1000);
-        }
-
-        function toggleMediaOptions() {
-            const options = document.getElementById('mediaOptions');
-            options.classList.toggle('active');
-        }
-
-        function attachImage() {
-            document.getElementById('imageInput').click();
-        }
-
-        function attachVideo() {
-            document.getElementById('videoInput').click();
-        }
-
-        // ============================================
-        // FUNCIONES AUXILIARES
-        // ============================================
-        function updateUnreadBadge() {
-            const badge = document.getElementById('unreadBadge');
-            if (unreadMessages > 0) {
-                badge.textContent = unreadMessages > 99 ? '99+' : unreadMessages;
-                badge.style.display = 'flex';
-            } else {
-                badge.style.display = 'none';
-            }
-        }
-
-        function scrollToBottom() {
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) {
-                setTimeout(() => {
-                    chatMessages.scrollTop = chatMessages.scrollHeight;
-                }, 100);
-            }
-        }
-
-        function loadRecentMessages() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'GET_RECENT_MESSAGES'
-                }));
-            }
-        }
-
-        function displayRecentMessages(messages) {
-            const chatMessages = document.getElementById('chatMessages');
-            if (chatMessages) {
-                chatMessages.innerHTML = '';
-                messages.forEach(message => {
-                    const messageDiv = createMessageElement(message);
-                    chatMessages.appendChild(messageDiv);
-                });
-                scrollToBottom();
-            }
-        }
-
-        function requestOnlineCount() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'GET_ONLINE_COUNT'
-                }));
-            }
-        }
-
-        function formatDuration(seconds) {
-            if (!seconds) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `\( {mins}: \){secs.toString().padStart(2, '0')}`;
-        }
-
-        function getTimeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const seconds = Math.floor((now - date) / 1000);
-            
-            if (seconds < 60) return 'Ahora';
-            if (seconds < 3600) return `${Math.floor(seconds / 60)} min`;
-            if (seconds < 86400) return `${Math.floor(seconds / 3600)} h`;
-            if (seconds < 604800) return `${Math.floor(seconds / 86400)} d`;
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function showNotification(message, type = 'success') {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
-
-        function openMedia(url) {
-            window.open(url, '_blank');
-        }
-
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
-        document.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            setupUploadListeners();
-            
-            // Event listener para typing
-            const chatInput = document.getElementById('chatInput');
-            if (chatInput) {
-                chatInput.addEventListener('input', onTyping);
-            }
-            
-            // Event listeners para media inputs
-            document.getElementById('imageInput').addEventListener('change', handleImageSelect);
-            document.getElementById('videoInput').addEventListener('change', handleVideoSelect);
-            
-            // Event listener para cerrar modal de video
-            document.getElementById('closeVideoModal').addEventListener('click', closeVideoModal);
-            document.getElementById('videoModal').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('videoModal')) {
-                    closeVideoModal();
-                }
+            // Agregar event listeners
+            document.querySelectorAll('.video-card').forEach(card => {
+                card.addEventListener('click', () => openVideoPlayer(card.dataset.id));
             });
+        }
+        
+        // Abrir reproductor
+        function openVideoPlayer(videoId) {
+            const video = videos.find(v => v.id == videoId);
+            if (!video) return;
+            
+            document.getElementById('video-player').src = video.url;
+            document.getElementById('video-player-title').textContent = video.title;
+            document.getElementById('video-duration').innerHTML = `<i class="fas fa-clock"></i> ${video.duration}`;
+            document.getElementById('video-views').innerHTML = `<i class="fas fa-eye"></i> ${video.views} vistas`;
+            
+            // Configurar descarga
+            document.getElementById('download-btn').onclick = () => {
+                window.open(`/api/videos/${videoId}/download`, '_blank');
+            };
+            
+            switchScreen('player');
+        }
+        
+        // Configurar WebSocket
+        socket.on('video-uploaded', (video) => {
+            console.log('Nuevo video subido:', video);
+            // Recargar videos si estamos en la pantalla principal
+            if (screens.main.classList.contains('active')) {
+                loadVideos();
+            }
         });
-
-        async function handleImageSelect(e) {
+        
+        socket.on('video-processed', (data) => {
+            console.log('Video procesado:', data);
+            loadVideos(); // Recargar para mostrar miniatura y duración
+        });
+        
+        // Configurar eventos
+        document.getElementById('upload-btn').addEventListener('click', () => switchScreen('upload'));
+        document.getElementById('back-from-upload-btn').addEventListener('click', () => switchScreen('main'));
+        document.getElementById('close-player-btn').addEventListener('click', () => switchScreen('main'));
+        
+        // Subida de videos
+        const videoInput = document.getElementById('video-input');
+        document.getElementById('select-video-btn').addEventListener('click', () => videoInput.click());
+        document.getElementById('upload-area').addEventListener('click', () => videoInput.click());
+        
+        videoInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
             
-            if (file.size > 10 * 1024 * 1024) {
-                showNotification('La imagen es demasiado grande (máximo 10MB)', 'error');
+            if (file.size > 100 * 1024 * 1024) {
+                alert('El video debe ser menor a 100MB');
                 return;
             }
             
-            // Notificar que está subiendo imagen
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'TYPING',
-                    user_id: currentUser.id,
-                    username: currentUser.username,
-                    action: 'uploading_image'
-                }));
-            }
+            selectedFile = file;
+            document.getElementById('upload-details').style.display = 'block';
             
-            // Subir archivo
-            try {
-                const token = localStorage.getItem('auth_token');
-                const formData = new FormData();
-                formData.append('media', file);
-                
-                const response = await fetch(`${API_BASE}/api/chat/upload-media`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Enviar mensaje con imagen
-                    ws.send(JSON.stringify({
-                        type: 'MESSAGE',
-                        content: '',
-                        user_id: currentUser.id,
-                        username: currentUser.username,
-                        media_type: 'image',
-                        media_url: data.media_url
-                    }));
+            // Subir el video
+            const formData = new FormData();
+            formData.append('video', file);
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/upload');
+            
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    document.getElementById('upload-progress').style.width = percent + '%';
+                    document.getElementById('progress-text').textContent = percent + '%';
                 }
-            } catch (error) {
-                console.error('Error subiendo imagen:', error);
-                showNotification('Error al subir imagen', 'error');
-            }
+            });
             
-            toggleMediaOptions();
-        }
-
-        async function handleVideoSelect(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            if (file.size > 50 * 1024 * 1024) {
-                showNotification('El video es demasiado grande (máximo 50MB)', 'error');
-                return;
-            }
-            
-            // Notificar que está subiendo video
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'TYPING',
-                    user_id: currentUser.id,
-                    username: currentUser.username,
-                    action: 'uploading_video'
-                }));
-            }
-            
-            // Subir archivo
-            try {
-                const token = localStorage.getItem('auth_token');
-                const formData = new FormData();
-                formData.append('media', file);
-                
-                const response = await fetch(`${API_BASE}/api/chat/upload-media`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: formData
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Enviar mensaje con video
-                    ws.send(JSON.stringify({
-                        type: 'MESSAGE',
-                        content: '',
-                        user_id: currentUser.id,
-                        username: currentUser.username,
-                        media_type: 'video',
-                        media_url: data.media_url
-                    }));
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    document.getElementById('progress-text').textContent = '¡Subida completa!';
+                    setTimeout(() => switchScreen('main'), 2000);
+                } else {
+                    alert('Error subiendo el video');
                 }
-            } catch (error) {
-                console.error('Error subiendo video:', error);
-                showNotification('Error al subir video', 'error');
-            }
+            };
             
-            toggleMediaOptions();
-        }
+            xhr.send(formData);
+        });
+        
+        // Inicializar
+        loadVideos();
     </script>
 </body>
 </html>
