@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CPVideos</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -11,7 +11,7 @@
             --primary-red: #d32f2f; --dark-red: #b71c1c; --light-red: #ff6659;
             --black: #121212; --dark-gray: #1e1e1e; --medium-gray: #2d2d2d;
             --light-gray: #e0e0e0; --white: #ffffff;
-            --shadow: 0 3px 6px rgba(0,0,0,0.4); --border-radius: 6px;
+            --shadow: 0 4px 8px rgba(0,0,0,0.5); --border-radius: 8px;
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,76 +19,73 @@
             font-family: 'Poppins', sans-serif; 
             background: var(--black); 
             color: var(--white);
-            font-size: 14px;
-            transform: scale(0.85);
-            transform-origin: top left;
-            width: 117.6%; /* Compensa el scale(0.85): 100/0.85 = 117.6 */
+            font-size: 16px;
         }
         
         /* Pantallas */
         .screen { display: none; min-height: 100vh; }
         .screen.active { display: block; }
         
-        /* Header principal - REDUCIDO */
+        /* Header principal - AGRANDADO 20% */
         .main-header { 
             background: var(--dark-gray); 
-            padding: 0.8rem 1.2rem; 
+            padding: 1.2rem 2rem; 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            border-bottom: 2px solid var(--primary-red); 
+            border-bottom: 3px solid var(--primary-red); 
             position: sticky; 
             top: 0; 
             z-index: 1000; 
         }
         
         .main-header h1 { 
-            font-size: 1.2rem; 
+            font-size: 1.8rem; 
             color: var(--primary-red); 
             display: flex; 
             align-items: center; 
-            gap: 6px; 
+            gap: 10px; 
         }
         
         .upload-button { 
             background: var(--primary-red); 
             color: var(--white); 
             border: none; 
-            padding: 0.6rem 1rem; 
+            padding: 0.9rem 1.8rem; 
             border-radius: var(--border-radius); 
             font-family: 'Poppins', sans-serif;
-            font-weight: 500; 
-            font-size: 0.85rem;
+            font-weight: 600; 
+            font-size: 1rem;
             cursor: pointer; 
             transition: all 0.2s; 
             display: flex; 
             align-items: center; 
-            gap: 6px; 
+            gap: 8px; 
         }
         
         .upload-button:hover { 
             background: var(--dark-red); 
-            transform: translateY(-1px); 
+            transform: translateY(-2px); 
         }
         
-        /* Grid de videos - REDUCIDO */
+        /* Grid de videos - AGRANDADO 20% */
         .video-grid-container { 
-            padding: 1.2rem; 
-            max-width: 1200px; 
+            padding: 1.8rem; 
+            max-width: 1400px; 
             margin: 0 auto; 
         }
         
         .video-grid-container h2 { 
-            font-size: 1.2rem; 
-            margin-bottom: 1rem; 
+            font-size: 1.8rem; 
+            margin-bottom: 1.5rem; 
             color: var(--light-gray); 
             font-weight: 600;
         }
         
         .video-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-            gap: 1.2rem; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap: 1.8rem; 
         }
         
         .video-card { 
@@ -98,18 +95,18 @@
             box-shadow: var(--shadow); 
             transition: all 0.2s; 
             cursor: pointer; 
-            border: 1px solid transparent; 
+            border: 2px solid transparent; 
         }
         
         .video-card:hover { 
-            transform: translateY(-4px); 
+            transform: translateY(-6px); 
             border-color: var(--primary-red); 
         }
         
         .video-thumbnail { 
             position: relative; 
             width: 100%; 
-            height: 140px; /* REDUCIDO de 200px */
+            height: 190px; /* AGRANDADO */
             overflow: hidden; 
             background: var(--medium-gray); 
         }
@@ -122,66 +119,66 @@
         
         .video-duration { 
             position: absolute; 
-            bottom: 6px; 
-            right: 6px; 
+            bottom: 10px; 
+            right: 10px; 
             background: rgba(0,0,0,0.8); 
             color: var(--white); 
-            padding: 2px 6px; 
-            border-radius: 3px; 
-            font-size: 0.7rem; 
+            padding: 4px 8px; 
+            border-radius: 4px; 
+            font-size: 0.85rem; 
             font-weight: 500;
         }
         
         .video-info { 
-            padding: 0.8rem; 
+            padding: 1.2rem; 
         }
         
         .video-info h3 { 
-            font-size: 0.9rem; 
-            font-weight: 500;
-            margin-bottom: 0.3rem; 
+            font-size: 1.1rem; 
+            font-weight: 600;
+            margin-bottom: 0.5rem; 
             display: -webkit-box; 
             -webkit-line-clamp: 2; 
             -webkit-box-orient: vertical; 
             overflow: hidden; 
-            line-height: 1.3;
+            line-height: 1.4;
         }
         
         .video-meta { 
             display: flex; 
             justify-content: space-between; 
             color: var(--light-gray); 
-            font-size: 0.75rem; 
+            font-size: 0.9rem; 
         }
         
-        /* Pantalla de subida - REDUCIDO */
+        /* Pantalla de subida - AGRANDADO 20% */
         .upload-header { 
             background: var(--dark-gray); 
-            padding: 0.8rem 1.2rem; 
+            padding: 1.2rem 2rem; 
             display: flex; 
             align-items: center; 
-            border-bottom: 2px solid var(--primary-red); 
+            border-bottom: 3px solid var(--primary-red); 
         }
         
         .upload-header h2 { 
-            font-size: 1.1rem; 
+            font-size: 1.6rem; 
             font-weight: 600; 
             color: var(--primary-red); 
-            margin-left: 0.8rem;
+            margin-left: 1rem;
         }
         
         .back-button { 
             background: var(--medium-gray); 
             color: var(--white); 
             border: none; 
-            width: 32px; /* REDUCIDO de 40px */
-            height: 32px; 
+            width: 45px; /* AGRANDADO */
+            height: 45px; 
             border-radius: 50%; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
             cursor: pointer; 
-            font-size: 1rem; 
+            font-size: 1.3rem; 
             transition: all 0.2s; 
         }
         
@@ -190,16 +187,16 @@
         }
         
         .upload-container { 
-            max-width: 600px; /* REDUCIDO */
-            margin: 1.2rem auto; 
-            padding: 0 1.2rem; 
+            max-width: 700px; /* AGRANDADO */
+            margin: 2rem auto; 
+            padding: 0 2rem; 
         }
         
         .upload-area { 
             background: var(--dark-gray); 
-            border: 2px dashed var(--primary-red); /* REDUCIDO */
+            border: 3px dashed var(--primary-red); 
             border-radius: var(--border-radius); 
-            padding: 1.8rem 1.2rem; /* REDUCIDO */
+            padding: 3rem 2rem; /* AGRANDADO */
             text-align: center; 
             cursor: pointer; 
             transition: all 0.2s; 
@@ -211,132 +208,132 @@
         }
         
         .upload-area i { 
-            font-size: 2.5rem; /* REDUCIDO de 4rem */
+            font-size: 4.5rem; /* AGRANDADO */
             color: var(--primary-red); 
-            margin-bottom: 0.8rem; 
+            margin-bottom: 1.5rem; 
         }
         
         .upload-area h3 { 
-            font-size: 1.1rem; 
-            margin-bottom: 0.4rem; 
+            font-size: 1.6rem; /* AGRANDADO */
+            margin-bottom: 0.6rem; 
             color: var(--white); 
         }
         
         .upload-area p { 
             color: var(--light-gray); 
-            margin-bottom: 1rem; 
-            font-size: 0.85rem;
+            margin-bottom: 1.5rem; 
+            font-size: 1rem;
         }
         
         .select-video-btn { 
             background: var(--primary-red); 
             color: var(--white); 
             border: none; 
-            padding: 0.6rem 1.2rem; /* REDUCIDO */
+            padding: 0.9rem 2rem; /* AGRANDADO */
             border-radius: var(--border-radius); 
             font-family: 'Poppins', sans-serif;
-            font-weight: 500; 
-            font-size: 0.85rem;
+            font-weight: 600; 
+            font-size: 1rem;
             cursor: pointer; 
             transition: all 0.2s; 
-            margin-bottom: 0.8rem; 
+            margin-bottom: 1rem; 
         }
         
         .select-video-btn:hover { 
             background: var(--dark-red); 
-            transform: translateY(-1px); 
+            transform: translateY(-2px); 
         }
         
         .file-info { 
-            font-size: 0.75rem; 
+            font-size: 0.9rem; 
             color: #aaa; 
         }
         
         .upload-details { 
             background: var(--dark-gray); 
             border-radius: var(--border-radius); 
-            padding: 1.2rem; /* REDUCIDO */
-            margin-top: 1.2rem; 
+            padding: 2rem; /* AGRANDADO */
+            margin-top: 2rem; 
             box-shadow: var(--shadow); 
         }
         
         .upload-progress-container { 
             background: var(--medium-gray); 
-            border-radius: 6px; 
-            padding: 0.8rem; /* REDUCIDO */
-            margin: 1rem 0; 
+            border-radius: 8px; 
+            padding: 1.5rem; /* AGRANDADO */
+            margin: 1.5rem 0; 
         }
         
         .progress-info { 
             display: flex; 
             justify-content: space-between; 
-            margin-bottom: 0.5rem; 
+            margin-bottom: 0.8rem; 
             font-weight: 500; 
-            font-size: 0.85rem;
+            font-size: 1rem;
         }
         
         .progress-bar { 
             width: 100%; 
-            height: 8px; /* REDUCIDO de 12px */
+            height: 12px; /* AGRANDADO */
             background: var(--black); 
-            border-radius: 4px; 
+            border-radius: 6px; 
             overflow: hidden; 
         }
         
         .progress-fill { 
             height: 100%; 
             background: var(--primary-red); 
-            border-radius: 4px; 
+            border-radius: 6px; 
             width: 0%; 
             transition: width 0.2s; 
         }
         
-        /* Pantalla de reproducción - REDUCIDO */
+        /* Pantalla de reproducción - AGRANDADO 20% */
         .player-header { 
             background: var(--dark-gray); 
-            padding: 0.8rem 1.2rem; 
+            padding: 1.2rem 2rem; 
             display: flex; 
             align-items: center; 
-            border-bottom: 2px solid var(--primary-red); 
+            border-bottom: 3px solid var(--primary-red); 
         }
         
         .player-header h2 { 
-            font-size: 1.1rem; 
+            font-size: 1.6rem; 
             font-weight: 600; 
             color: var(--primary-red); 
-            margin-left: 0.8rem; 
+            margin-left: 1rem; 
         }
         
         .player-container { 
-            max-width: 800px; /* REDUCIDO */
-            margin: 1.2rem auto; 
-            padding: 0 1.2rem; 
+            max-width: 900px; /* AGRANDADO */
+            margin: 2rem auto; 
+            padding: 0 2rem; 
         }
         
         .video-player-wrapper { 
             background: var(--black); 
             border-radius: var(--border-radius); 
             overflow: hidden; 
-            margin-bottom: 1.2rem; 
+            margin-bottom: 2rem; 
             box-shadow: var(--shadow); 
         }
         
         #video-player { 
             width: 100%; 
-            max-height: 50vh; /* REDUCIDO de 70vh */
+            max-height: 65vh; /* AGRANDADO */
             display: block; 
         }
         
         .video-info { 
             background: var(--dark-gray); 
             border-radius: var(--border-radius); 
-            padding: 1.2rem; 
+            padding: 1.8rem; /* AGRANDADO */
             box-shadow: var(--shadow); 
         }
         
         .video-info h3 { 
-            font-size: 1.1rem; /* REDUCIDO de 1.6rem */
-            margin-bottom: 0.6rem; 
+            font-size: 1.8rem; /* AGRANDADO */
+            margin-bottom: 1rem; 
             color: var(--white); 
         }
         
@@ -344,40 +341,40 @@
             background: var(--primary-red); 
             color: var(--white); 
             border: none; 
-            padding: 0.6rem 1.2rem; /* REDUCIDO */
+            padding: 1rem 2.5rem; /* AGRANDADO */
             border-radius: var(--border-radius); 
             font-family: 'Poppins', sans-serif;
-            font-weight: 500; 
-            font-size: 0.85rem;
+            font-weight: 600; 
+            font-size: 1rem;
             cursor: pointer; 
             transition: all 0.2s; 
             display: flex; 
             align-items: center; 
-            gap: 6px; 
+            gap: 10px; 
         }
         
         .download-btn:hover { 
             background: var(--dark-red); 
-            transform: translateY(-1px); 
+            transform: translateY(-2px); 
         }
         
-        /* Notificaciones - REDUCIDO */
+        /* Notificaciones - AGRANDADO */
         .notification {
             position: fixed;
-            top: 10px; /* REDUCIDO */
-            right: 10px;
+            top: 20px;
+            right: 20px;
             background: var(--primary-red);
             color: white;
-            padding: 10px 15px; /* REDUCIDO */
-            border-radius: 6px;
+            padding: 15px 20px;
+            border-radius: 8px;
             box-shadow: var(--shadow);
             z-index: 10000;
             animation: slideIn 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 0.85rem;
-            max-width: 300px;
+            gap: 10px;
+            font-size: 1rem;
+            max-width: 350px;
         }
         
         .notification.error {
@@ -400,54 +397,43 @@
         
         /* Responsive */
         @media (max-width: 768px) {
-            body {
-                transform: scale(0.8);
-                width: 125%;
-            }
-            
             .video-grid { 
-                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-                gap: 1rem; 
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); 
+                gap: 1.5rem; 
             }
             
             .video-thumbnail { 
-                height: 120px; 
+                height: 170px; 
             }
             
             .main-header, .upload-header, .player-header { 
-                padding: 0.6rem 1rem; 
+                padding: 1rem 1.5rem; 
             }
             
             .video-grid-container, .upload-container, .player-container { 
-                padding: 1rem; 
+                padding: 1.5rem; 
             }
             
             .upload-area { 
-                padding: 1.5rem 1rem; 
+                padding: 2.5rem 1.5rem; 
             }
         }
         
         @media (max-width: 480px) {
-            body {
-                transform: scale(0.75);
-                width: 133.3%;
-            }
-            
             .video-grid { 
                 grid-template-columns: 1fr; 
             }
             
             .main-header h1 { 
-                font-size: 1rem; 
+                font-size: 1.5rem; 
             }
             
             .upload-button, .select-video-btn, .download-btn { 
-                padding: 0.5rem 0.8rem; 
-                font-size: 0.8rem; 
+                padding: 0.8rem 1.5rem; 
             }
             
             .video-thumbnail { 
-                height: 100px; 
+                height: 150px; 
             }
         }
     </style>
@@ -531,7 +517,7 @@
 
             <div class="video-info">
                 <h3 id="video-player-title">Título del Video</h3>
-                <div class="video-meta" style="margin: 0.5rem 0; color: var(--light-gray);">
+                <div class="video-meta" style="margin: 1rem 0; color: var(--light-gray);">
                     <span id="video-duration"><i class="fas fa-clock"></i> 0:00</span>
                     <span id="video-views"><i class="fas fa-eye"></i> 0 vistas</span>
                 </div>
@@ -552,7 +538,7 @@
         let uploadStartTime = null;
         let currentUploadXHR = null;
         let socket = null;
-        let videoInputClicked = false;
+        let fileInputProcessing = false; // ✅ EVITA DOBLE PROCESAMIENTO
 
         // Elementos del DOM
         const mainScreen = document.getElementById('main-screen');
@@ -565,7 +551,7 @@
         const backFromUploadBtn = document.getElementById('back-from-upload-btn');
         const closePlayerBtn = document.getElementById('close-player-btn');
         
-        // Elementos de subida - ✅ CORREGIDO EL PROBLEMA DEL DOBLE CLICK
+        // Elementos de subida - ✅ SOLUCIÓN DEFINITIVA AL DOBLE CLICK
         const videoInput = document.getElementById('video-input');
         const selectVideoBtn = document.getElementById('select-video-btn');
         const uploadArea = document.getElementById('upload-area');
@@ -615,9 +601,9 @@
                 console.error('Error cargando videos:', error);
                 showNotification('Error al cargar videos', 'error');
                 videoGrid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
                         <p>Error al cargar los videos</p>
-                        <button onclick="loadVideos()" class="upload-button" style="margin-top: 0.5rem;">
+                        <button onclick="loadVideos()" class="upload-button" style="margin-top: 1rem;">
                             <i class="fas fa-redo"></i> Reintentar
                         </button>
                     </div>
@@ -629,7 +615,7 @@
         function renderVideoGrid() {
             if (videos.length === 0) {
                 videoGrid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 3rem; background-color: var(--dark-gray); border-radius: var(--border-radius); color: var(--light-gray);">
                         <p>No hay videos disponibles</p>
                         <p>¡Sube el primero tocando el botón "Subir Video"!</p>
                     </div>
@@ -640,9 +626,9 @@
             videoGrid.innerHTML = videos.map(video => `
                 <div class="video-card" data-id="${video.id}">
                     <div class="video-thumbnail">
-                        <img src="${video.thumbnail || 'https://placehold.co/320x140/d32f2f/ffffff?text=Video'}" 
+                        <img src="${video.thumbnail || 'https://placehold.co/400x190/d32f2f/ffffff?text=Video'}" 
                              alt="${video.title}"
-                             onerror="this.src='https://placehold.co/320x140/d32f2f/ffffff?text=Thumbnail'">
+                             onerror="this.src='https://placehold.co/400x190/d32f2f/ffffff?text=Thumbnail'">
                         <span class="video-duration">${video.duration || '0:00'}</span>
                     </div>
                     <div class="video-info">
@@ -655,7 +641,7 @@
                 </div>
             `).join('');
             
-            // Agregar event listeners a los videos
+            // Agregar event listeners a los videos - ✅ UN SOLO TOQUE
             document.querySelectorAll('.video-card').forEach(card => {
                 card.addEventListener('click', function() {
                     const videoId = this.getAttribute('data-id');
@@ -695,15 +681,19 @@
 
         // ==================== FUNCIONES DE SUBIDA (CORREGIDO DOBLE CLICK) ====================
 
-        // ✅ CORREGIDO: Función para manejar selección de video (solución al doble click)
+        // ✅ SOLUCIÓN DEFINITIVA: Función para manejar selección de video
         function handleVideoSelect(file) {
-            if (!file) return;
+            if (!file || fileInputProcessing) return;
             
-            console.log('Video seleccionado:', file.name);
+            // Bloquear procesamiento adicional
+            fileInputProcessing = true;
+            
+            console.log('✅ Video seleccionado:', file.name);
             
             // Validar que sea un video
             if (!file.type.startsWith('video/')) {
                 showNotification('Por favor selecciona un archivo de video', 'error');
+                fileInputProcessing = false;
                 return;
             }
             
@@ -711,6 +701,7 @@
             const maxSize = 50 * 1024 * 1024;
             if (file.size > maxSize) {
                 showNotification('El video es demasiado grande. Máximo 50MB.', 'error');
+                fileInputProcessing = false;
                 return;
             }
             
@@ -722,25 +713,32 @@
             
             // Iniciar subida inmediatamente
             uploadVideo(file);
+            
+            // Desbloquear después de un breve retraso
+            setTimeout(() => {
+                fileInputProcessing = false;
+            }, 100);
         }
 
-        // ✅ CORREGIDO: Event handler único para el input de archivo
-        function handleFileInputChange(e) {
-            if (e.target.files && e.target.files[0]) {
-                handleVideoSelect(e.target.files[0]);
-                // Resetear el input para permitir seleccionar el mismo archivo otra vez
-                e.target.value = '';
+        // ✅ SOLUCIÓN SIMPLIFICADA: Event handler único
+        function handleFileInput(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleVideoSelect(file);
+                // Limpiar input para permitir seleccionar el mismo archivo
+                event.target.value = '';
             }
         }
 
-        // ✅ CORREGIDO: Event handler para drag and drop
-        function handleFileDrop(e) {
-            e.preventDefault();
+        // ✅ SOLUCIÓN SIMPLIFICADA: Event handler para drag and drop
+        function handleFileDrop(event) {
+            event.preventDefault();
             uploadArea.style.borderColor = 'var(--primary-red)';
             uploadArea.style.backgroundColor = 'var(--dark-gray)';
             
-            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                handleVideoSelect(e.dataTransfer.files[0]);
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                handleVideoSelect(file);
             }
         }
 
@@ -785,6 +783,7 @@
             // Manejar respuesta
             currentUploadXHR.addEventListener('load', () => {
                 uploadInProgress = false;
+                fileInputProcessing = false;
                 
                 if (currentUploadXHR.status === 200) {
                     try {
@@ -793,9 +792,9 @@
                         // Mostrar progreso completo
                         uploadProgress.style.width = '100%';
                         progressText.textContent = '100%';
-                        uploadSpeed.textContent = 'Completado';
+                        uploadSpeed.textContent = 'Completado ✅';
                         
-                        showNotification(`Video "${response.title}" subido`, 'success');
+                        showNotification(`Video "${response.title}" subido exitosamente`, 'success');
                         
                         // Esperar 1 segundo y volver
                         setTimeout(() => switchScreen('main'), 1000);
@@ -811,12 +810,14 @@
             // Manejar error
             currentUploadXHR.addEventListener('error', () => {
                 uploadInProgress = false;
+                fileInputProcessing = false;
                 showNotification('Error de conexión', 'error');
             });
             
             // Manejar cancelación
             currentUploadXHR.addEventListener('abort', () => {
                 uploadInProgress = false;
+                fileInputProcessing = false;
                 showNotification('Subida cancelada', 'error');
             });
             
@@ -843,7 +844,7 @@
             uploadInProgress = false;
             uploadStartTime = null;
             currentUploadXHR = null;
-            videoInputClicked = false;
+            fileInputProcessing = false;
             
             if (videoInput) videoInput.value = '';
             if (uploadDetails) uploadDetails.style.display = 'none';
@@ -860,7 +861,7 @@
                 socket = io();
                 
                 socket.on('connect', () => {
-                    console.log('WebSocket conectado');
+                    console.log('✅ WebSocket conectado');
                 });
                 
                 socket.on('video-uploaded', () => {
@@ -872,7 +873,7 @@
                 });
                 
             } catch (error) {
-                console.error('Error WebSocket:', error);
+                console.error('❌ Error WebSocket:', error);
             }
         }
 
@@ -913,13 +914,16 @@
             }
         }
 
-        // ==================== CONFIGURACIÓN DE EVENTOS (CORREGIDO) ====================
+        // ==================== CONFIGURACIÓN DE EVENTOS (SOLUCIÓN DEFINITIVA) ====================
 
         function setupEventListeners() {
-            // ✅ CORREGIDO: Un solo event listener para cada elemento
+            console.log('🔧 Configurando event listeners...');
             
             // Botón de subir video
-            uploadBtn.addEventListener('click', () => switchScreen('upload'));
+            uploadBtn.addEventListener('click', () => {
+                console.log('🔼 Botón Subir Video presionado');
+                switchScreen('upload');
+            });
             
             // Botón para volver
             backFromUploadBtn.addEventListener('click', cancelUpload);
@@ -931,21 +935,24 @@
                 switchScreen('main');
             });
             
-            // ✅ CORREGIDO: SOLUCIÓN AL DOBLE CLICK
-            // Botón para seleccionar video - UN SOLO CLICK
+            // ✅ SOLUCIÓN DEFINITIVA: UN SOLO EVENT LISTENER POR ELEMENTO
+            
+            // Botón para seleccionar video
             selectVideoBtn.addEventListener('click', () => {
+                console.log('📁 Botón Seleccionar Video presionado');
                 videoInput.click();
-            });
+            }, { once: false }); // Permitir múltiples clics
             
-            // ✅ CORREGIDO: Área de subida - UN SOLO CLICK
+            // Área de subida
             uploadArea.addEventListener('click', () => {
+                console.log('📦 Área de subida clickeada');
                 videoInput.click();
-            });
+            }, { once: false }); // Permitir múltiples clics
             
-            // ✅ CORREGIDO: Input de archivo - USAR FUNCIÓN ÚNICA
-            videoInput.addEventListener('change', handleFileInputChange);
+            // ✅ SOLUCIÓN CRÍTICA: Un solo event listener para el input
+            videoInput.addEventListener('change', handleFileInput);
             
-            // ✅ CORREGIDO: Drag and drop
+            // Drag and drop
             uploadArea.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 uploadArea.style.borderColor = 'var(--light-red)';
@@ -963,19 +970,48 @@
             if (cancelUploadBtn) {
                 cancelUploadBtn.addEventListener('click', cancelUpload);
             }
+            
+            console.log('✅ Event listeners configurados correctamente');
+        }
+
+        // ==================== DIAGNÓSTICO ====================
+
+        function initDiagnostic() {
+            console.log('🔍 Diagnóstico de selección de archivos:');
+            console.log('  - videoInput:', videoInput ? '✅ Encontrado' : '❌ No encontrado');
+            console.log('  - selectVideoBtn:', selectVideoBtn ? '✅ Encontrado' : '❌ No encontrado');
+            console.log('  - uploadArea:', uploadArea ? '✅ Encontrado' : '❌ No encontrado');
+            
+            // Verificar conexión API
+            fetch('/api/health')
+                .then(res => res.json())
+                .then(data => console.log('✅ API conectada:', data.status))
+                .catch(err => console.error('❌ API no disponible:', err));
         }
 
         // ==================== INICIALIZACIÓN ====================
 
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 CPVideos - Inicializando...');
+            
+            // Ejecutar diagnóstico
+            initDiagnostic();
+            
+            // Configurar eventos
             setupEventListeners();
+            
+            // Configurar WebSocket
             setupWebSocket();
+            
+            // Cargar videos iniciales
             loadVideos();
+            
+            console.log('✅ Aplicación lista - UN SOLO TOQUE PARA SELECCIONAR');
         });
 
         // Manejar errores
         window.onerror = function(msg) {
-            console.error('Error:', msg);
+            console.error('🔥 Error no capturado:', msg);
             return true;
         };
     </script>
