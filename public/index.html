@@ -55,7 +55,7 @@
         }
         
         .logo-text {
-            font-size: 20px; /* REDUCIDO */
+            font-size: 20px;
             font-weight: 600;
             color: var(--primary-red);
             letter-spacing: -0.5px;
@@ -66,11 +66,11 @@
             background: var(--primary-red); 
             color: var(--white); 
             border: none; 
-            padding: 8px 16px; /* REDUCIDO */
+            padding: 8px 16px;
             border-radius: var(--border-radius); 
             font-family: 'Poppins', sans-serif;
             font-weight: 500; 
-            font-size: 14px; /* REDUCIDO */
+            font-size: 14px;
             cursor: pointer; 
             transition: all 0.2s; 
             display: flex; 
@@ -172,6 +172,7 @@
         .video-stats { 
             display: flex; 
             justify-content: space-between; 
+            align-items: center;
             color: var(--light-gray); 
             font-size: 12px; 
         }
@@ -182,6 +183,13 @@
         
         .video-date {
             color: #888;
+            font-size: 11px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
         }
         
         .empty-state {
@@ -741,7 +749,7 @@
                 <div class="player-meta">
                     <span id="player-duration"><i class="fas fa-clock"></i> 0:00</span>
                     <span id="player-views"><i class="fas fa-eye"></i> 0 vistas</span>
-                    <span id="player-date"><i class="fas fa-calendar"></i> Hoy</span>
+                    <span id="player-date"><i class="fas fa-calendar"></i> <span id="upload-time-text">Hoy</span></span>
                 </div>
                 <button id="download-video-btn" class="download-btn">
                     <i class="fas fa-download"></i> Descargar Video
@@ -792,8 +800,50 @@
         const playerHeaderTitle = document.getElementById('player-header-title');
         const playerDuration = document.getElementById('player-duration');
         const playerViews = document.getElementById('player-views');
-        const playerDate = document.getElementById('player-date');
+        const uploadTimeText = document.getElementById('upload-time-text');
         const downloadVideoBtn = document.getElementById('download-video-btn');
+
+        // ========== FUNCIÓN CORREGIDA: CALCULAR TIEMPO DESDE SUBIDA ==========
+        function calculateTimeAgo(dateString) {
+            if (!dateString) return 'Reciente';
+            
+            try {
+                const uploadDate = new Date(dateString);
+                const now = new Date();
+                const diffMs = now - uploadDate;
+                
+                // Si la fecha es inválida
+                if (isNaN(diffMs)) return 'Reciente';
+                
+                const diffSeconds = Math.floor(diffMs / 1000);
+                const diffMinutes = Math.floor(diffSeconds / 60);
+                const diffHours = Math.floor(diffMinutes / 60);
+                const diffDays = Math.floor(diffHours / 24);
+                const diffWeeks = Math.floor(diffDays / 7);
+                const diffMonths = Math.floor(diffDays / 30);
+                const diffYears = Math.floor(diffDays / 365);
+                
+                // ✅ CORRECCIÓN: Mostrar el tiempo exacto desde la subida
+                if (diffYears > 0) {
+                    return `hace ${diffYears} ${diffYears === 1 ? 'año' : 'años'}`;
+                } else if (diffMonths > 0) {
+                    return `hace ${diffMonths} ${diffMonths === 1 ? 'mes' : 'meses'}`;
+                } else if (diffWeeks > 0) {
+                    return `hace ${diffWeeks} ${diffWeeks === 1 ? 'semana' : 'semanas'}`;
+                } else if (diffDays > 0) {
+                    return `hace ${diffDays} ${diffDays === 1 ? 'día' : 'días'}`;
+                } else if (diffHours > 0) {
+                    return `hace ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`;
+                } else if (diffMinutes > 0) {
+                    return `hace ${diffMinutes} ${diffMinutes === 1 ? 'minuto' : 'minutos'}`;
+                } else {
+                    return 'hace unos segundos';
+                }
+            } catch (error) {
+                console.error('Error calculando fecha:', error, 'Fecha:', dateString);
+                return 'Reciente';
+            }
+        }
 
         // ========== FUNCIONES PRINCIPALES ==========
         
@@ -838,7 +888,7 @@
             }
         }
 
-        // Renderizar cuadrícula de videos
+        // Renderizar cuadrícula de videos - ✅ CON TIEMPO CORRECTO
         function renderVideosGrid() {
             if (videos.length === 0) {
                 videosGrid.innerHTML = `
@@ -851,7 +901,11 @@
                 return;
             }
             
-            videosGrid.innerHTML = videos.map(video => `
+            videosGrid.innerHTML = videos.map(video => {
+                // ✅ CALCULAR TIEMPO DESDE SUBIDA CORRECTAMENTE
+                const timeAgo = calculateTimeAgo(video.uploaded_at);
+                
+                return `
                 <div class="video-item" data-id="${video.id}">
                     <div class="video-thumb">
                         <img src="${video.thumbnail || 'https://placehold.co/400x160/d32f2f/ffffff?text=Video'}" 
@@ -863,11 +917,14 @@
                         <h4 class="video-title">${video.title || 'Video sin título'}</h4>
                         <div class="video-stats">
                             <span class="video-size">${video.size || '0 MB'}</span>
-                            <span class="video-date">${formatDate(video.uploaded_at)}</span>
+                            <span class="video-date">
+                                <i class="fas fa-clock" style="font-size: 10px;"></i> ${timeAgo}
+                            </span>
                         </div>
                     </div>
                 </div>
-            `).join('');
+                `;
+            }).join('');
             
             // Event listeners para videos
             document.querySelectorAll('.video-item').forEach(item => {
@@ -878,7 +935,7 @@
             });
         }
 
-        // Abrir reproductor
+        // Abrir reproductor - ✅ CON TIEMPO CORRECTO
         async function openVideoPlayer(videoId) {
             try {
                 const response = await fetch(`/api/videos/${videoId}`);
@@ -889,7 +946,10 @@
                 playerHeaderTitle.textContent = `Reproduciendo: ${video.title.substring(0, 30)}${video.title.length > 30 ? '...' : ''}`;
                 playerDuration.innerHTML = `<i class="fas fa-clock"></i> ${video.duration || '0:00'}`;
                 playerViews.innerHTML = `<i class="fas fa-eye"></i> ${video.views || 0} vistas`;
-                playerDate.innerHTML = `<i class="fas fa-calendar"></i> ${formatDate(video.uploaded_at)}`;
+                
+                // ✅ MOSTRAR TIEMPO DESDE SUBIDA CORRECTAMENTE
+                const timeAgo = calculateTimeAgo(video.uploaded_at);
+                uploadTimeText.textContent = timeAgo;
                 
                 downloadVideoBtn.onclick = () => {
                     window.open(`/api/videos/${videoId}/download`, '_blank');
@@ -1060,24 +1120,6 @@
             }, 4000);
         }
         
-        // Formatear fecha
-        function formatDate(dateString) {
-            if (!dateString) return 'Reciente';
-            try {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-                
-                if (diffDays === 0) return 'Hoy';
-                if (diffDays === 1) return 'Ayer';
-                if (diffDays < 7) return `Hace ${diffDays}d`;
-                
-                return date.toLocaleDateString('es-ES', {month: 'short', day: 'numeric'});
-            } catch {
-                return 'Reciente';
-            }
-        }
-        
         // Formatear tamaño de archivo
         function formatFileSize(bytes) {
             if (!bytes) return '0 Bytes';
@@ -1170,7 +1212,7 @@
             setupWebSocket();
             loadVideos();
             
-            console.log('✅ Aplicación lista');
+            console.log('✅ Aplicación lista - Tiempo de subida corregido');
         });
         
         // Manejo de errores
