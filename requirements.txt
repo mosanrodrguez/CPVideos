@@ -1,0 +1,10 @@
+Flask
+Flask-CORS
+Werkzeug
+gunicorn
+python-dotenv
+yt-dlp
+pytube
+moviepy
+redis
+celery
