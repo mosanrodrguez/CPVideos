@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descarga y Conversión de Videos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f1f1f1;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background-color: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #4cc9f0;
+            font-weight: 700;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #aaa;
+            font-size: 1.1rem;
+        }
+        
+        .input-section {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 25px;
+        }
+        
+        label {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #72efdd;
+            font-size: 1.1rem;
+        }
+        
+        .url-input {
+            padding: 15px 20px;
+            background-color: rgba(255, 255, 255, 0.07);
+            border: 2px solid rgba(76, 201, 240, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .url-input:focus {
+            outline: none;
+            border-color: #4cc9f0;
+            box-shadow: 0 0 0 3px rgba(76, 201, 240, 0.2);
+        }
+        
+        .url-input::placeholder {
+            color: #999;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            background: linear-gradient(to right, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(to right, #3a56d4, #2d0a8a);
+            transform: translateY(-3px);
+            box-shadow: 0 7px 14px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: linear-gradient(145deg, #232331, #1a1a27);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(76, 201, 240, 0.3);
+            transform: translateY(30px);
+            transition: transform 0.5s ease;
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-icon {
+            font-size: 4rem;
+            color: #4cc9f0;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #72efdd;
+        }
+        
+        .modal-message {
+            font-size: 1.1rem;
+            color: #ccc;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .quality-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .quality-option {
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .quality-option:hover {
+            background-color: rgba(67, 97, 238, 0.2);
+            border-color: rgba(67, 97, 238, 0.5);
+        }
+        
+        .quality-option.selected {
+            background-color: rgba(67, 97, 238, 0.3);
+            border-color: #4361ee;
+        }
+        
+        .quality-label {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #4cc9f0;
+        }
+        
+        .quality-size {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        
+        .progress-container {
+            margin: 30px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(to right, #4361ee, #4cc9f0);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        
+        .video-player-section {
+            display: none;
+            margin-top: 40px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .video-player-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .video-title {
+            color: #72efdd;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background-color: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .video-info {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(to right, #7209b7, #3a0ca3);
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(to right, #5e0896, #2d0a8a);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #4cc9f0;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: #2ecc71;
+            border: 1px solid #2ecc71;
+        }
+        
+        .status-error {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+        
+        .status-info {
+            background-color: rgba(52, 152, 219, 0.2);
+            color: #3498db;
+            border: 1px solid #3498db;
+        }
+        
+        .video-details {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .video-details h4 {
+            color: #72efdd;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .detail-label {
+            color: #aaa;
+        }
+        
+        .detail-value {
+            color: #4cc9f0;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .quality-options {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .video-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-video"></i> Convertidor de Videos con FFmpeg</h1>
+        <p class="subtitle">Ingresa la URL de un video para descargarlo y convertirlo a la calidad deseada</p>
+        
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+        
+        <div class="input-section">
+            <div class="input-group">
+                <label for="videoUrl"><i class="fas fa-link"></i> URL del Video</label>
+                <input type="text" id="videoUrl" class="url-input" placeholder="https://youtube.com/watch?v=... o https://ejemplo.com/video.mp4">
+                <small style="margin-top: 5px; color: #888; font-size: 0.9rem;">
+                    Soporta: YouTube, Vimeo, y archivos directos (MP4, AVI, MOV, etc.)
+                </small>
+            </div>
+            <button id="processBtn" class="btn">
+                <i class="fas fa-cloud-download-alt"></i> Procesar Video
+            </button>
+        </div>
+        
+        <div class="video-player-section" id="videoPlayerSection">
+            <h3 class="video-title" id="convertedTitle">Video Convertido</h3>
+            
+            <div class="video-details" id="videoDetails" style="display: none;">
+                <h4><i class="fas fa-info-circle"></i> Información del Video</h4>
+                <div class="detail-item">
+                    <span class="detail-label">Resolución original:</span>
+                    <span class="detail-value" id="originalResolution">1920x1080</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Duración:</span>
+                    <span class="detail-value" id="originalDuration">5:24</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Tamaño original:</span>
+                    <span class="detail-value" id="originalSize">350 MB</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Calidad convertida:</span>
+                    <span class="detail-value" id="convertedQuality">720p</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Tamaño convertido:</span>
+                    <span class="detail-value" id="convertedSize">125 MB</span>
+                </div>
+            </div>
+            
+            <div class="video-container">
+                <video class="video-player" id="videoPlayer" controls>
+                    Tu navegador no soporta la reproducción de videos.
+                </video>
+            </div>
+            
+            <div class="action-buttons">
+                <button id="newConversionBtn" class="btn btn-secondary">
+                    <i class="fas fa-sync-alt"></i> Nueva Conversión
+                </button>
+                <button id="downloadBtn" class="btn">
+                    <i class="fas fa-download"></i> Descargar Video
+                </button>
+                <button id="cancelBtn" class="btn" style="background: linear-gradient(to right, #e74c3c, #c0392b); display: none;">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para mostrar el progreso -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div id="modalIcon" class="modal-icon">
+                <i class="fas fa-cloud-download-alt"></i>
+            </div>
+            <h2 id="modalTitle" class="modal-title">Procesando</h2>
+            <p id="modalMessage" class="modal-message">Descargando el video desde el servidor...</p>
+            
+            <!-- Sección de selección de calidad -->
+            <div id="qualitySection" class="quality-section" style="display: none;">
+                <p class="modal-message">Selecciona la calidad deseada para la conversión:</p>
+                <div class="quality-options" id="qualityOptions">
+                    <!-- Las opciones de calidad se generarán dinámicamente -->
+                </div>
+                <button id="convertBtn" class="btn" style="display: none; margin-top: 20px;">
+                    <i class="fas fa-cogs"></i> Convertir Video con FFmpeg
+                </button>
+            </div>
+            
+            <!-- Sección de progreso de conversión -->
+            <div id="conversionSection" class="conversion-section" style="display: none;">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div id="conversionProgress" class="progress"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Progreso:</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+                <p class="modal-message" style="font-size: 0.9rem; margin-top: 15px;">
+                    <i class="fas fa-info-circle"></i> FFmpeg está procesando el video. Esto puede tomar varios minutos dependiendo del tamaño.
+                </p>
+            </div>
+            
+            <!-- Spinner de carga -->
+            <div id="loadingSpinner" class="loading-spinner"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Elementos del DOM
+        const videoUrlInput = document.getElementById('videoUrl');
+        const processBtn = document.getElementById('processBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalIcon = document.getElementById('modalIcon');
+        const qualitySection = document.getElementById('qualitySection');
+        const qualityOptions = document.getElementById('qualityOptions');
+        const convertBtn = document.getElementById('convertBtn');
+        const conversionSection = document.getElementById('conversionSection');
+        const conversionProgress = document.getElementById('conversionProgress');
+        const progressPercent = document.getElementById('progressPercent');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const videoPlayerSection = document.getElementById('videoPlayerSection');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const videoDetails = document.getElementById('videoDetails');
+        const originalResolution = document.getElementById('originalResolution');
+        const originalDuration = document.getElementById('originalDuration');
+        const originalSize = document.getElementById('originalSize');
+        const convertedQuality = document.getElementById('convertedQuality');
+        const convertedSize = document.getElementById('convertedSize');
+        const convertedTitle = document.getElementById('convertedTitle');
+        const newConversionBtn = document.getElementById('newConversionBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        
+        // Variables de estado
+        let selectedQuality = null;
+        let currentSessionId = null;
+        let statusCheckInterval = null;
+        
+        // Event Listeners
+        processBtn.addEventListener('click', processVideo);
+        convertBtn.addEventListener('click', startConversion);
+        newConversionBtn.addEventListener('click', resetApp);
+        downloadBtn.addEventListener('click', downloadVideo);
+        cancelBtn.addEventListener('click', cancelConversion);
+        
+        // Mostrar mensaje de estado
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+            
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                statusMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Función para procesar el video
+        async function processVideo() {
+            const url = videoUrlInput.value.trim();
+            
+            if (!url) {
+                showStatus('Por favor, ingresa una URL válida', 'error');
+                return;
+            }
+            
+            // Validar URL
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                showStatus('La URL debe comenzar con http:// o https://', 'error');
+                return;
+            }
+            
+            // Deshabilitar botón y mostrar modal
+            processBtn.disabled = true;
+            processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            showModal();
+            
+            try {
+                // Enviar solicitud al servidor
+                const response = await fetch('/api/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Error al procesar el video');
+                }
+                
+                currentSessionId = data.session_id;
+                
+                // Iniciar verificación de estado
+                startStatusChecking();
+                
+                showStatus('Video en proceso de descarga...', 'info');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                hideModal();
+                processBtn.disabled = false;
+                processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
+                showStatus('Error al procesar el video: ' + error.message, 'error');
+            }
+        }
+        
+        // Función para mostrar el modal
+        function showModal() {
+            modalOverlay.classList.add('active');
+        }
+        
+        // Función para ocultar el modal
+        function hideModal() {
+            modalOverlay.classList.remove('active');
+        }
+        
+        // Iniciar verificación de estado
+        function startStatusChecking() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+            
+            statusCheckInterval = setInterval(checkStatus, 1500);
+        }
+        
+        // Verificar estado del procesamiento
+        async function checkStatus() {
+            if (!currentSessionId) return;
+            
+            try {
+                const response = await fetch(`/api/status/${currentSessionId}`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.message || 'Error al verificar estado');
+                }
+                
+                const status = data.status;
+                
+                switch(status) {
+                    case 'downloading':
+                        // Mostrar descarga en progreso
+                        modalTitle.textContent = 'Descargando';
+                        modalMessage.textContent = 'Descargando video desde la URL...';
+                        modalIcon.innerHTML = '<i class="fas fa-cloud-download-alt"></i>';
+                        loadingSpinner.style.display = 'block';
+                        qualitySection.style.display = 'none';
+                        conversionSection.style.display = 'none';
+                        break;
+                        
+                    case 'downloaded':
+                        // Mostrar selección de calidad
+                        loadingSpinner.style.display = 'none';
+                        showQualitySelection(data.qualities, data.video_info);
+                        showStatus('Video descargado. Selecciona la calidad deseada.', 'success');
+                        break;
+                        
+                    case 'converting':
+                        // Mostrar progreso de conversión
+                        loadingSpinner.style.display = 'none';
+                        showConversionProgress(data.conversion_progress);
+                        cancelBtn.style.display = 'block';
+                        break;
+                        
+                    case 'completed':
+                        // Conversión completada
+                        clearInterval(statusCheckInterval);
+                        hideModal();
+                        showVideoPlayer(data);
+                        cancelBtn.style.display = 'none';
+                        showStatus('¡Conversión completada exitosamente!', 'success');
+                        break;
+                        
+                    case 'error':
+                        // Error en el proceso
+                        clearInterval(statusCheckInterval);
+                        hideModal();
+                        processBtn.disabled = false;
+                        processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
+                        showStatus('Error: ' + data.error, 'error');
+                        break;
+                        
+                    case 'cancelled':
+                        // Conversión cancelada
+                        clearInterval(statusCheckInterval);
+                        hideModal();
+                        processBtn.disabled = false;
+                        processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
+                        showStatus('Conversión cancelada', 'info');
+                        break;
+                }
+                
+            } catch (error) {
+                console.error('Error verificando estado:', error);
+            }
+        }
+        
+        // Mostrar selección de calidad
+        function showQualitySelection(qualities, videoInfo) {
+            modalTitle.textContent = 'Seleccionar Calidad';
+            
+            if (videoInfo && videoInfo.width && videoInfo.height) {
+                modalMessage.textContent = `Video original: ${videoInfo.width}x${videoInfo.height} - ${videoInfo.duration_formatted}`;
+            } else {
+                modalMessage.textContent = 'Video descargado. Selecciona la calidad deseada:';
+            }
+            
+            modalIcon.innerHTML = '<i class="fas fa-sliders-h"></i>';
+            
+            // Limpiar opciones anteriores
+            qualityOptions.innerHTML = '';
+            
+            // Generar opciones de calidad
+            qualities.forEach((quality, index) => {
+                const option = document.createElement('div');
+                option.className = 'quality-option';
+                option.dataset.index = index;
+                
+                option.innerHTML = `
+                    <div class="quality-label">${quality.quality}</div>
+                    <div class="quality-size">${quality.size}</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 3px;">${quality.resolution}</div>
+                `;
+                
+                option.addEventListener('click', () => selectQuality(option, quality));
+                
+                // Seleccionar 720p por defecto
+                if (quality.quality === '720p') {
+                    selectQuality(option, quality);
+                }
+                
+                qualityOptions.appendChild(option);
+            });
+            
+            qualitySection.style.display = 'block';
+            convertBtn.style.display = 'block';
+        }
+        
+        // Seleccionar calidad
+        function selectQuality(optionElement, quality) {
+            // Quitar selección anterior
+            document.querySelectorAll('.quality-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Marcar como seleccionada
+            optionElement.classList.add('selected');
+            selectedQuality = quality;
+        }
+        
+        // Iniciar conversión
+        async function startConversion() {
+            if (!selectedQuality || !currentSessionId) {
+                showStatus('Error: No se ha seleccionado calidad o sesión inválida', 'error');
+                return;
+            }
+            
+            modalTitle.textContent = 'Convirtiendo con FFmpeg';
+            modalMessage.textContent = `Convirtiendo el video a ${selectedQuality.quality} (${selectedQuality.resolution})...`;
+            modalIcon.innerHTML = '<i class="fas fa-cogs"></i>';
+            qualitySection.style.display = 'none';
+            conversionSection.style.display = 'block';
+            convertBtn.style.display = 'none';
+            
+            try {
+                // Enviar solicitud de conversión al servidor
+                const response = await fetch('/api/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        quality: selectedQuality.quality
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Error al iniciar la conversión');
+                }
+                
+                showStatus('Conversión iniciada con FFmpeg...', 'info');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error al iniciar la conversión: ' + error.message, 'error');
+            }
+        }
+        
+        // Mostrar progreso de conversión
+        function showConversionProgress(progress) {
+            conversionProgress.style.width = `${progress}%`;
+            progressPercent.textContent = `${progress}%`;
+            
+            modalTitle.textContent = `Convirtiendo... ${progress}%`;
+        }
+        
+        // Mostrar reproductor de video
+        function showVideoPlayer(data) {
+            // Establecer información del video
+            if (data.video_info) {
+                videoDetails.style.display = 'block';
+                originalResolution.textContent = `${data.video_info.width || 'N/A'}x${data.video_info.height || 'N/A'}`;
+                originalDuration.textContent = data.video_info.duration_formatted || 'N/A';
+                originalSize.textContent = data.video_info.size_formatted || 'N/A';
+                
+                if (data.video_info.title) {
+                    convertedTitle.textContent = data.video_info.title;
+                }
+            }
+            
+            if (data.converted_info) {
+                convertedQuality.textContent = data.quality || selectedQuality?.quality || 'N/A';
+                convertedSize.textContent = data.converted_info.size_formatted || 'N/A';
+            }
+            
+            // Configurar reproductor de video
+            if (data.video_url) {
+                videoPlayer.src = data.video_url;
+            }
+            
+            // Mostrar sección del reproductor
+            videoPlayerSection.classList.add('active');
+            
+            // Restablecer botones
+            processBtn.disabled = false;
+            processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
+            videoUrlInput.value = '';
+        }
+        
+        // Descargar video
+        async function downloadVideo() {
+            if (!currentSessionId) {
+                showStatus('Error: No hay sesión activa', 'error');
+                return;
+            }
+            
+            try {
+                // Crear enlace de descarga
+                const downloadUrl = `/api/download/${currentSessionId}`;
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = `video_${selectedQuality?.quality || 'converted'}.mp4`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showStatus('Descarga iniciada', 'success');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error al descargar el video', 'error');
+            }
+        }
+        
+        // Cancelar conversión
+        async function cancelConversion() {
+            if (!currentSessionId) {
+                showStatus('Error: No hay sesión activa', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cancel/${currentSessionId}`, {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('Conversión cancelada', 'info');
+                    hideModal();
+                    processBtn.disabled = false;
+                    processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
+                } else {
+                    throw new Error(data.message || 'Error al cancelar');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus('Error al cancelar la conversión', 'error');
+            }
+        }
+        
+        // Reiniciar la aplicación
+        function resetApp() {
+            // Detener verificación de estado
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+            
+            // Resetear elementos
+            videoPlayerSection.classList.remove('active');
+            videoPlayer.pause();
+            videoPlayer.currentTime = 0;
+            videoPlayer.src = '';
+            videoDetails.style.display = 'none';
+            cancelBtn.style.display = 'none';
+            
+            // Resetear variables
+            selectedQuality = null;
+            currentSessionId = null;
+            
+            showStatus('Listo para nueva conversión', 'info');
+        }
+        
+        // Ejemplo de URL prellenada para facilitar la prueba
+        window.addEventListener('DOMContentLoaded', () => {
+            videoUrlInput.value = '';
+            videoUrlInput.placeholder = 'Ejemplo: https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+            showStatus('Servicio listo. Ingresa la URL de un video para comenzar.', 'info');
+        });
+    </script>
+</body>
+</html>
