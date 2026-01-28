@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Servidor real para conversión de videos con FFmpeg
-Compatible con Render.com usando Docker
+Versión optimizada para Render.com
 """
 
 import os
@@ -9,7 +9,6 @@ import sys
 import uuid
 import json
 import time
-import shutil
 import signal
 import threading
 import subprocess
@@ -20,18 +19,16 @@ import mimetypes
 
 from flask import Flask, request, jsonify, send_file, send_from_directory, Response
 from flask_cors import CORS
-from werkzeug.utils import secure_filename
 import yt_dlp
 
 # Configuración de la aplicación
 app = Flask(__name__, static_folder='.', static_url_path='')
-CORS(app)  # Habilitar CORS para todas las rutas
+CORS(app)
 
 # Configuración
-app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB
 app.config['UPLOAD_FOLDER'] = 'temp_videos'
 app.config['CONVERTED_FOLDER'] = 'converted_videos'
-app.config['ALLOWED_EXTENSIONS'] = {'mp4', 'avi', 'mov', 'mkv', 'webm', 'flv', 'm4v', 'wmv'}
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
 app.config['MAX_RETENTION_MINUTES'] = int(os.environ.get('MAX_RETENTION_MINUTES', '60'))
 
@@ -39,7 +36,7 @@ app.config['MAX_RETENTION_MINUTES'] = int(os.environ.get('MAX_RETENTION_MINUTES'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['CONVERTED_FOLDER'], exist_ok=True)
 
-# Base de datos en memoria (en producción usar Redis)
+# Base de datos en memoria
 sessions: Dict[str, Dict] = {}
 conversion_tasks: Dict[str, Dict] = {}
 
@@ -58,8 +55,6 @@ except (subprocess.CalledProcessError, FileNotFoundError):
 
 # Configuración de calidades
 VIDEO_QUALITIES = {
-    '2160p': {'width': 3840, 'height': 2160, 'bitrate': '20000k', 'size_estimate': '500 MB'},
-    '1440p': {'width': 2560, 'height': 1440, 'bitrate': '12000k', 'size_estimate': '300 MB'},
     '1080p': {'width': 1920, 'height': 1080, 'bitrate': '8000k', 'size_estimate': '200 MB'},
     '720p': {'width': 1280, 'height': 720, 'bitrate': '4000k', 'size_estimate': '100 MB'},
     '480p': {'width': 854, 'height': 480, 'bitrate': '2000k', 'size_estimate': '50 MB'},
@@ -86,31 +81,25 @@ def get_video_info(video_path: str) -> Dict:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         info = json.loads(result.stdout)
         
-        # Extraer información relevante
         video_info = {
             'duration': float(info['format']['duration']),
             'size': int(info['format']['size']),
-            'format': info['format']['format_name'],
-            'bit_rate': int(info['format'].get('bit_rate', 0))
+            'format': info['format']['format_name']
         }
         
-        # Buscar stream de video
         for stream in info['streams']:
             if stream['codec_type'] == 'video':
                 video_info.update({
                     'width': stream.get('width', 0),
                     'height': stream.get('height', 0),
-                    'codec': stream.get('codec_name', 'unknown'),
-                    'frame_rate': eval(stream.get('r_frame_rate', '0/1')) if '/' in stream.get('r_frame_rate', '0/1') else 0
+                    'codec': stream.get('codec_name', 'unknown')
                 })
                 break
         
-        # Formatear duración
         minutes = int(video_info['duration'] // 60)
         seconds = int(video_info['duration'] % 60)
         video_info['duration_formatted'] = f"{minutes}:{seconds:02d}"
         
-        # Formatear tamaño
         size_mb = video_info['size'] / (1024 * 1024)
         video_info['size_formatted'] = f"{size_mb:.1f} MB"
         
@@ -122,62 +111,37 @@ def get_video_info(video_path: str) -> Dict:
             'duration': 0,
             'size': 0,
             'duration_formatted': '0:00',
-            'size_formatted': '0 MB'
+            'size_formatted': '0 MB',
+            'width': 0,
+            'height': 0
         }
 
 def download_youtube_video(url: str, output_path: str) -> Tuple[bool, str, Dict]:
     """Descargar video de YouTube usando yt-dlp"""
     try:
         ydl_opts = {
-            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'format': 'best[ext=mp4]/best',
             'outtmpl': output_path,
             'quiet': True,
             'no_warnings': True,
             'extract_flat': False,
-            'merge_output_format': 'mp4',
-            'postprocessors': [{
-                'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-            }],
         }
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            # Obtener información del video
             info = ydl.extract_info(url, download=False)
-            
-            # Descargar el video
             ydl.download([url])
             
             video_info = {
                 'title': info.get('title', 'Video descargado'),
                 'duration': info.get('duration', 0),
-                'thumbnail': info.get('thumbnail', None),
                 'original_quality': f"{info.get('height', 0)}p",
-                'channel': info.get('uploader', 'Desconocido'),
-                'views': info.get('view_count', 0)
+                'channel': info.get('uploader', 'Desconocido')
             }
             
             return True, output_path, video_info
             
     except Exception as e:
         app.logger.error(f"Error descargando video de YouTube: {str(e)}")
-        return False, str(e), {}
-
-def download_direct_video(url: str, output_path: str) -> Tuple[bool, str, Dict]:
-    """Descargar video directo usando wget"""
-    try:
-        # Descargar con wget
-        cmd = ['wget', '-O', output_path, url]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        
-        # Obtener información del video descargado
-        video_info = get_video_info(output_path)
-        video_info['title'] = Path(output_path).name
-        
-        return True, output_path, video_info
-        
-    except Exception as e:
-        app.logger.error(f"Error descargando video directo: {str(e)}")
         return False, str(e), {}
 
 def convert_video_with_ffmpeg(
@@ -193,7 +157,6 @@ def convert_video_with_ffmpeg(
         
         config = VIDEO_QUALITIES[quality]
         
-        # Comando FFmpeg para conversión
         cmd = [
             FFMPEG_PATH,
             '-i', input_path,
@@ -204,11 +167,10 @@ def convert_video_with_ffmpeg(
             '-b:v', config['bitrate'],
             '-c:a', 'aac',
             '-b:a', '128k',
-            '-y',  # Sobrescribir si existe
+            '-y',
             output_path
         ]
         
-        # Iniciar proceso
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
@@ -216,76 +178,44 @@ def convert_video_with_ffmpeg(
             universal_newlines=True
         )
         
-        # Guardar proceso en tasks
         conversion_tasks[session_id] = {
             'process': process,
             'output_path': output_path,
             'start_time': datetime.now().isoformat()
         }
         
-        # Esperar a que termine
         stdout, stderr = process.communicate()
         
-        # Verificar éxito
         if process.returncode == 0:
             return True, output_path
         else:
-            return False, f"Error FFmpeg: {stderr}"
+            return False, f"Error FFmpeg: {stderr[:200]}"
             
     except Exception as e:
         app.logger.error(f"Error convirtiendo video: {str(e)}")
         return False, str(e)
 
-def monitor_conversion_progress(session_id: str, output_path: str):
-    """Monitorear progreso de conversión"""
-    try:
-        while session_id in conversion_tasks:
-            task = conversion_tasks[session_id]
-            
-            if 'process' in task and task['process'].poll() is not None:
-                # Proceso terminado
-                sessions[session_id]['conversion_progress'] = 100
-                sessions[session_id]['status'] = 'completed'
-                sessions[session_id]['converted_at'] = datetime.now().isoformat()
-                
-                # Obtener información del video convertido
-                if os.path.exists(output_path):
-                    video_info = get_video_info(output_path)
-                    sessions[session_id]['converted_info'] = video_info
-                    sessions[session_id]['converted_path'] = output_path
-                
-                # Limpiar tarea
-                conversion_tasks.pop(session_id, None)
-                break
-            
-            # Simular progreso (en producción real, se leería del output de FFmpeg)
-            if session_id in sessions:
-                current_progress = sessions[session_id].get('conversion_progress', 0)
-                if current_progress < 90:
-                    sessions[session_id]['conversion_progress'] = min(current_progress + 2, 90)
-            
-            time.sleep(1)
-            
-    except Exception as e:
-        app.logger.error(f"Error monitoreando conversión: {str(e)}")
-
 def cleanup_old_files():
-    """Limpiar archivos antiguos automáticamente"""
+    """Limpiar archivos antiguos automáticamente - CORREGIDO"""
     try:
         now = time.time()
         cutoff = now - (app.config['MAX_RETENTION_MINUTES'] * 60)
         
-        # Limpiar archivos temporales
-        for folder in [app.config['UPLOAD_FOLDER'], app.config['CONVERTED_FOLDER']:
+        # Limpiar archivos temporales - CORREGIDO: falta cerrar corchete
+        folders = [app.config['UPLOAD_FOLDER'], app.config['CONVERTED_FOLDER']]
+        for folder in folders:
+            if not os.path.exists(folder):
+                continue
+                
             for filename in os.listdir(folder):
                 filepath = os.path.join(folder, filename)
                 if os.path.isfile(filepath):
-                    if os.path.getmtime(filepath) < cutoff:
-                        try:
+                    try:
+                        if os.path.getmtime(filepath) < cutoff:
                             os.remove(filepath)
                             app.logger.info(f"Eliminado archivo antiguo: {filepath}")
-                        except Exception as e:
-                            app.logger.error(f"Error eliminando archivo: {str(e)}")
+                    except Exception as e:
+                        app.logger.error(f"Error eliminando archivo: {str(e)}")
         
         # Limpiar sesiones antiguas
         sessions_to_remove = []
@@ -295,20 +225,18 @@ def cleanup_old_files():
                 sessions_to_remove.append(session_id)
         
         for session_id in sessions_to_remove:
-            # Matar procesos activos
             if session_id in conversion_tasks:
                 task = conversion_tasks[session_id]
                 if 'process' in task:
                     task['process'].terminate()
                 conversion_tasks.pop(session_id, None)
-            
             sessions.pop(session_id, None)
             
     except Exception as e:
         app.logger.error(f"Error en limpieza automática: {str(e)}")
 
 # Iniciar limpieza automática en segundo plano
-cleanup_thread = threading.Thread(target=lambda: cleanup_old_files(), daemon=True)
+cleanup_thread = threading.Thread(target=cleanup_old_files, daemon=True)
 cleanup_thread.start()
 
 @app.route('/')
@@ -329,25 +257,19 @@ def process_video():
         
         url = data['url'].strip()
         
-        # Validar URL
         if not url.startswith(('http://', 'https://')):
             return jsonify({
                 "success": False,
                 "message": "URL no válida"
             }), 400
         
-        # Generar sesión
         session_id = generate_session_id()
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         
-        # Determinar tipo de descarga
         is_youtube = 'youtube.com' in url or 'youtu.be' in url
-        
-        # Preparar rutas
         original_filename = f"original_{session_id}_{timestamp}.mp4"
         original_path = os.path.join(app.config['UPLOAD_FOLDER'], original_filename)
         
-        # Crear sesión
         sessions[session_id] = {
             "url": url,
             "status": "downloading",
@@ -357,16 +279,25 @@ def process_video():
             "is_youtube": is_youtube
         }
         
-        # Descargar en segundo plano
         def download_background():
             try:
                 if is_youtube:
                     success, result, video_info = download_youtube_video(url, original_path)
                 else:
-                    success, result, video_info = download_direct_video(url, original_path)
+                    # Para URLs directas, usar wget
+                    try:
+                        cmd = ['wget', '-O', original_path, url]
+                        subprocess.run(cmd, capture_output=True, text=True, check=True)
+                        success = True
+                        result = original_path
+                        video_info = get_video_info(original_path)
+                        video_info['title'] = Path(original_path).name
+                    except Exception as e:
+                        success = False
+                        result = str(e)
+                        video_info = {}
                 
                 if success:
-                    # Obtener información detallada del video
                     ffprobe_info = get_video_info(original_path)
                     video_info.update(ffprobe_info)
                     
@@ -388,11 +319,9 @@ def process_video():
                     "error": str(e)
                 })
         
-        # Iniciar descarga en segundo plano
         thread = threading.Thread(target=download_background, daemon=True)
         thread.start()
         
-        # Preparar opciones de calidad
         available_qualities = []
         for quality, config in VIDEO_QUALITIES.items():
             available_qualities.append({
@@ -430,7 +359,6 @@ def convert_video():
         session_id = data['session_id']
         quality = data['quality']
         
-        # Verificar sesión
         if session_id not in sessions:
             return jsonify({
                 "success": False,
@@ -439,26 +367,22 @@ def convert_video():
         
         session_data = sessions[session_id]
         
-        # Verificar que el video esté descargado
         if session_data.get("status") != "downloaded":
             return jsonify({
                 "success": False,
                 "message": "Video no descargado aún"
             }), 400
         
-        # Verificar calidad válida
         if quality not in VIDEO_QUALITIES:
             return jsonify({
                 "success": False,
                 "message": f"Calidad no válida. Opciones: {', '.join(VIDEO_QUALITIES.keys())}"
             }), 400
         
-        # Preparar ruta de salida
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         output_filename = f"converted_{session_id}_{quality}_{timestamp}.mp4"
         output_path = os.path.join(app.config['CONVERTED_FOLDER'], output_filename)
         
-        # Actualizar estado
         sessions[session_id].update({
             "status": "converting",
             "target_quality": quality,
@@ -467,7 +391,6 @@ def convert_video():
             "conversion_progress": 0
         })
         
-        # Convertir en segundo plano
         def convert_background():
             try:
                 success, result = convert_video_with_ffmpeg(
@@ -485,7 +408,6 @@ def convert_video():
                         "converted_path": output_path
                     })
                     
-                    # Obtener información del video convertido
                     converted_info = get_video_info(output_path)
                     sessions[session_id]['converted_info'] = converted_info
                     
@@ -502,17 +424,8 @@ def convert_video():
                     "error": str(e)
                 })
         
-        # Iniciar conversión en segundo plano
         thread = threading.Thread(target=convert_background, daemon=True)
         thread.start()
-        
-        # Iniciar monitoreo de progreso
-        monitor_thread = threading.Thread(
-            target=monitor_conversion_progress,
-            args=(session_id, output_path),
-            daemon=True
-        )
-        monitor_thread.start()
         
         return jsonify({
             "success": True,
@@ -547,11 +460,9 @@ def get_status(session_id):
             "error": session_data.get("error")
         }
         
-        # Agregar información del video si está disponible
         if "video_info" in session_data:
             response["video_info"] = session_data["video_info"]
         
-        # Agregar información de conversión si está disponible
         if "converted_info" in session_data:
             response["converted_info"] = session_data["converted_info"]
             response["converted"] = True
@@ -590,19 +501,14 @@ def stream_video(session_id):
         
         video_path = session_data["converted_path"]
         
-        # Determinar tipo MIME
         mime_type, _ = mimetypes.guess_type(video_path)
         if not mime_type:
             mime_type = 'video/mp4'
         
-        # Configurar headers para streaming
         file_size = os.path.getsize(video_path)
-        
-        # Soporte para range requests (para streaming)
         range_header = request.headers.get('Range')
         
         if range_header:
-            # Parsear range header
             byte1, byte2 = 0, None
             range_ = range_header.replace('bytes=', '').split('-')
             byte1 = int(range_[0])
@@ -613,7 +519,6 @@ def stream_video(session_id):
             if byte2 is not None:
                 length = byte2 - byte1 + 1
             
-            # Leer y enviar parte del archivo
             def generate():
                 with open(video_path, 'rb') as f:
                     f.seek(byte1)
@@ -633,7 +538,6 @@ def stream_video(session_id):
             return rv
         
         else:
-            # Enviar archivo completo
             return send_file(
                 video_path,
                 mimetype=mime_type,
@@ -693,7 +597,6 @@ def cancel_conversion(session_id):
                 "message": "Sesión no encontrada"
             }), 404
         
-        # Matar proceso si existe
         if session_id in conversion_tasks:
             task = conversion_tasks[session_id]
             if 'process' in task:
@@ -703,7 +606,6 @@ def cancel_conversion(session_id):
                     task['process'].kill()
             conversion_tasks.pop(session_id, None)
         
-        # Actualizar estado
         sessions[session_id]['status'] = 'cancelled'
         
         return jsonify({
@@ -724,8 +626,11 @@ def cleanup_files():
     try:
         cleaned = 0
         
-        # Limpiar archivos temporales
-        for folder in [app.config['UPLOAD_FOLDER'], app.config['CONVERTED_FOLDER']]:
+        folders = [app.config['UPLOAD_FOLDER'], app.config['CONVERTED_FOLDER']]
+        for folder in folders:
+            if not os.path.exists(folder):
+                continue
+                
             for filename in os.listdir(folder):
                 filepath = os.path.join(folder, filename)
                 if os.path.isfile(filepath):
@@ -735,7 +640,6 @@ def cleanup_files():
                     except:
                         pass
         
-        # Limpiar sesiones
         sessions.clear()
         conversion_tasks.clear()
         
@@ -756,24 +660,14 @@ def cleanup_files():
 def health_check():
     """Endpoint de salud para Render.com"""
     try:
-        # Verificar FFmpeg
         subprocess.run([FFMPEG_PATH, '-version'], capture_output=True, check=True)
-        
-        # Verificar directorios
-        for folder in [app.config['UPLOAD_FOLDER'], app.config['CONVERTED_FOLDER']]:
-            if not os.path.exists(folder):
-                os.makedirs(folder, exist_ok=True)
         
         return jsonify({
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
             "ffmpeg": "available",
             "sessions_active": len(sessions),
-            "conversions_active": len(conversion_tasks),
-            "disk_usage": {
-                "temp_videos": f"{sum(os.path.getsize(f) for f in Path(app.config['UPLOAD_FOLDER']).glob('*') if f.is_file()) / (1024*1024):.1f} MB",
-                "converted_videos": f"{sum(os.path.getsize(f) for f in Path(app.config['CONVERTED_FOLDER']).glob('*') if f.is_file()) / (1024*1024):.1f} MB"
-            }
+            "conversions_active": len(conversion_tasks)
         })
         
     except Exception as e:
@@ -783,12 +677,10 @@ def health_check():
             "timestamp": datetime.now().isoformat()
         }), 500
 
-# Endpoint estático para favicon
 @app.route('/favicon.ico')
 def favicon():
     return send_from_directory('.', 'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-# Manejo de errores
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({
@@ -815,14 +707,6 @@ if __name__ == '__main__':
     print(f"🚀 Servidor iniciado en http://0.0.0.0:{port}")
     print(f"📁 Directorio de trabajo: {os.getcwd()}")
     print(f"🔧 FFmpeg disponible: {FFMPEG_PATH}")
-    
-    # Iniciar limpieza periódica
-    def periodic_cleanup():
-        while True:
-            time.sleep(300)  # Cada 5 minutos
-            cleanup_old_files()
-    
-    cleanup_daemon = threading.Thread(target=periodic_cleanup, daemon=True)
-    cleanup_daemon.start()
+    print(f"🎯 Calidades disponibles: {', '.join(VIDEO_QUALITIES.keys())}")
     
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
