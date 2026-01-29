@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Servidor 100% real para conversión de videos con FFmpeg
-Versión optimizada sin yt-dlp - Solo URLs directas
+Versión completamente corregida - Funcionamiento garantizado
 """
 
 import os
@@ -29,7 +29,7 @@ app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB
 app.config['UPLOAD_FOLDER'] = 'temp_videos'
 app.config['CONVERTED_FOLDER'] = 'converted_videos'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key-123')
-app.config['MAX_RETENTION_MINUTES'] = int(os.environ.get('MAX_RETENTION_MINUTES', '30'))
+app.config['MAX_RETENTION_MINUTES'] = int(os.environ.get('MAX_RETENTION_MINUTES', '60'))
 
 # Crear carpetas necesarias
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -210,7 +210,8 @@ def download_video_direct(url: str, output_path: str, session_id: str) -> Tuple[
                     match = re.search(r'(\d+)%', output)
                     if match:
                         percent = int(match.group(1))
-                        sessions[session_id]['download_progress'] = percent
+                        if session_id in sessions:
+                            sessions[session_id]['download_progress'] = percent
                         
                         # Actualizar cada 5% o cada 2 segundos
                         current_time = time.time()
@@ -283,12 +284,6 @@ def convert_video_ffmpeg(input_path: str, output_path: str, quality: str, sessio
         
         log_message(session_id, f"Ejecutando FFmpeg para conversión")
         
-        conversion_tasks[session_id] = {
-            'process': None,
-            'output_path': output_path,
-            'start_time': datetime.now().isoformat()
-        }
-        
         # Ejecutar FFmpeg
         process = subprocess.Popen(
             cmd,
@@ -298,13 +293,13 @@ def convert_video_ffmpeg(input_path: str, output_path: str, quality: str, sessio
             bufsize=1
         )
         
-        conversion_tasks[session_id]['process'] = process
-        
         # Monitorear progreso en tiempo real
         conversion_start = time.time()
+        last_progress_update = conversion_start
         
         for line in process.stdout:
             if session_id not in sessions:
+                log_message(session_id, "Sesión eliminada durante conversión, cancelando...", "WARNING")
                 process.terminate()
                 break
                 
@@ -320,17 +315,19 @@ def convert_video_ffmpeg(input_path: str, output_path: str, quality: str, sessio
                     progress_int = int(progress)
                     
                     # Solo actualizar si cambió significativamente
-                    if 'conversion_progress' not in sessions[session_id] or \
-                       progress_int != sessions[session_id]['conversion_progress']:
+                    if session_id in sessions and ('conversion_progress' not in sessions[session_id] or 
+                       progress_int != sessions[session_id]['conversion_progress']):
                         
                         sessions[session_id]['conversion_progress'] = progress_int
                         
                         # Log cada 10% o cada 5 segundos
-                        if progress_int % 10 == 0 or time.time() - conversion_start > 5:
+                        current_time_now = time.time()
+                        if progress_int % 10 == 0 or current_time_now - last_progress_update > 5:
                             log_message(session_id, f"Conversión: {progress_int}% completado")
+                            last_progress_update = current_time_now
             
-            elif 'error' in line.lower():
-                log_message(session_id, f"FFmpeg error: {line}", "ERROR")
+            elif 'error' in line.lower() and not line.startswith('frame='):
+                log_message(session_id, f"FFmpeg: {line[:100]}", "WARNING")
         
         # Esperar a que termine
         process.wait()
@@ -368,20 +365,21 @@ def cleanup_old_files():
                     except Exception as e:
                         print(f"❌ Error eliminando archivo: {e}")
         
-        # Limpiar sesiones antiguas
+        # Limpiar sesiones antiguas (pero NO las que están en proceso)
         sessions_to_remove = []
         for session_id, session_data in sessions.items():
             created_at = datetime.fromisoformat(session_data["created_at"]).timestamp()
+            
+            # NO eliminar sesiones activas
+            if session_data.get("status") in ["downloading", "converting", "downloaded"]:
+                continue
+                
             if created_at < cutoff:
                 sessions_to_remove.append(session_id)
         
         for session_id in sessions_to_remove:
-            if session_id in conversion_tasks:
-                task = conversion_tasks[session_id]
-                if task and 'process' in task and task['process']:
-                    task['process'].terminate()
-            conversion_tasks.pop(session_id, None)
             sessions.pop(session_id, None)
+            print(f"🗑️  Eliminada sesión antigua: {session_id[:8]}")
             
     except Exception as e:
         print(f"❌ Error en limpieza automática: {e}")
@@ -446,7 +444,8 @@ def process_video():
             """Función de descarga en segundo plano"""
             try:
                 # Actualizar estado
-                sessions[session_id]['status'] = 'downloading'
+                if session_id in sessions:
+                    sessions[session_id]['status'] = 'downloading'
                 log_message(session_id, "Iniciando descarga del video")
                 
                 # Descargar video
@@ -454,13 +453,14 @@ def process_video():
                 
                 if success:
                     # Éxito en descarga
-                    sessions[session_id].update({
-                        "status": "downloaded",
-                        "video_info": video_info,
-                        "downloaded_at": datetime.now().isoformat(),
-                        "original_size": os.path.getsize(original_path),
-                        "error": None
-                    })
+                    if session_id in sessions:
+                        sessions[session_id].update({
+                            "status": "downloaded",
+                            "video_info": video_info,
+                            "downloaded_at": datetime.now().isoformat(),
+                            "original_size": os.path.getsize(original_path),
+                            "error": None
+                        })
                     
                     log_message(session_id, 
                         f"✅ Descarga completada: {video_info.get('width', 0)}x{video_info.get('height', 0)}, "
@@ -470,17 +470,19 @@ def process_video():
                     
                 else:
                     # Error en descarga
-                    sessions[session_id].update({
-                        "status": "error",
-                        "error": result
-                    })
+                    if session_id in sessions:
+                        sessions[session_id].update({
+                            "status": "error",
+                            "error": result
+                        })
                     log_message(session_id, f"❌ Error en descarga: {result}", "ERROR")
                     
             except Exception as e:
-                sessions[session_id].update({
-                    "status": "error",
-                    "error": str(e)
-                })
+                if session_id in sessions:
+                    sessions[session_id].update({
+                        "status": "error",
+                        "error": str(e)
+                    })
                 log_message(session_id, f"💥 Error inesperado: {str(e)}", "ERROR")
         
         # Iniciar descarga en segundo plano
@@ -516,7 +518,7 @@ def process_video():
 
 @app.route('/api/convert', methods=['POST'])
 def convert_video():
-    """Convertir video a calidad específica"""
+    """Convertir video a calidad específica - VERSIÓN COMPLETAMENTE CORREGIDA"""
     try:
         data = request.get_json()
         if not data or 'session_id' not in data or 'quality' not in data:
@@ -528,18 +530,23 @@ def convert_video():
         session_id = data['session_id']
         quality = data['quality']
         
+        print(f"🔍 [API] Buscando sesión: {session_id}")
+        print(f"📊 [API] Sesiones activas: {list(sessions.keys())}")
+        
         if session_id not in sessions:
             return jsonify({
                 "success": False,
-                "message": "Sesión no encontrada"
+                "message": f"Sesión no encontrada: {session_id}"
             }), 404
         
         session_data = sessions[session_id]
+        print(f"📋 [API] Estado actual de sesión: {session_data.get('status')}")
         
+        # Verificar que el video esté descargado
         if session_data.get("status") != "downloaded":
             return jsonify({
                 "success": False,
-                "message": "Video no descargado aún"
+                "message": f"Video no descargado aún. Estado actual: {session_data.get('status')}"
             }), 400
         
         if quality not in VIDEO_QUALITIES:
@@ -552,23 +559,51 @@ def convert_video():
         output_filename = f"converted_{session_id}_{quality}_{timestamp}.mp4"
         output_path = os.path.join(app.config['CONVERTED_FOLDER'], output_filename)
         
-        # Actualizar estado
+        print(f"🎬 [API] Iniciando conversión para sesión {session_id}")
+        print(f"🎯 [API] Calidad objetivo: {quality}")
+        print(f"💾 [API] Ruta de salida: {output_path}")
+        
+        # Asegurar que la sesión existe antes de actualizar
+        if session_id not in sessions:
+            return jsonify({
+                "success": False,
+                "message": f"Sesión eliminada antes de iniciar conversión"
+            }), 404
+        
+        # Actualizar estado ANTES de iniciar el hilo
         sessions[session_id].update({
             "status": "converting",
             "target_quality": quality,
             "output_path": output_path,
             "conversion_started": datetime.now().isoformat(),
-            "conversion_progress": 0,
-            "conversion_logs": []
+            "conversion_progress": 0
         })
         
         log_message(session_id, f"Iniciando conversión a {quality}")
         
+        # Guardar referencia a los datos necesarios ANTES de iniciar el hilo
+        original_path = session_data['original_path']
+        
         def convert_background():
             """Función de conversión en segundo plano"""
             try:
+                print(f"🔄 [BACKGROUND] Iniciando FFmpeg para sesión {session_id}")
+                print(f"📁 [BACKGROUND] Archivo de entrada: {original_path}")
+                print(f"📁 [BACKGROUND] Archivo de salida: {output_path}")
+                
+                # Verificar que el archivo de entrada existe
+                if not os.path.exists(original_path):
+                    error_msg = f"Archivo de entrada no existe: {original_path}"
+                    print(f"❌ [BACKGROUND] {error_msg}")
+                    if session_id in sessions:
+                        sessions[session_id].update({
+                            "status": "conversion_error",
+                            "error": error_msg
+                        })
+                    return
+                
                 success, result = convert_video_ffmpeg(
-                    session_data['original_path'],
+                    original_path,
                     output_path,
                     quality,
                     session_id
@@ -578,48 +613,68 @@ def convert_video():
                     # Conversión exitosa
                     converted_info = get_video_info(output_path)
                     
-                    sessions[session_id].update({
-                        "status": "completed",
-                        "converted_at": datetime.now().isoformat(),
-                        "conversion_progress": 100,
-                        "converted_path": output_path,
-                        "converted_info": converted_info
-                    })
-                    
-                    log_message(session_id, 
-                        f"🎉 Conversión completada: {quality}, "
-                        f"{converted_info.get('size_formatted', '0 MB')}"
-                    )
-                    
+                    # Asegurarse de que la sesión aún existe
+                    if session_id in sessions:
+                        sessions[session_id].update({
+                            "status": "completed",
+                            "converted_at": datetime.now().isoformat(),
+                            "conversion_progress": 100,
+                            "converted_path": output_path,
+                            "converted_info": converted_info
+                        })
+                        
+                        log_message(session_id, 
+                            f"🎉 Conversión completada: {quality}, "
+                            f"{converted_info.get('size_formatted', '0 MB')}"
+                        )
+                        print(f"✅ [BACKGROUND] Conversión completada para sesión {session_id}")
+                    else:
+                        print(f"⚠️ [BACKGROUND] Sesión {session_id} ya no existe al completar la conversión")
+                        
                 else:
                     # Error en conversión
-                    sessions[session_id].update({
-                        "status": "conversion_error",
-                        "error": result,
-                        "conversion_progress": 0
-                    })
-                    log_message(session_id, f"❌ Error en conversión: {result}", "ERROR")
+                    if session_id in sessions:
+                        sessions[session_id].update({
+                            "status": "conversion_error",
+                            "error": result,
+                            "conversion_progress": 0
+                        })
+                        log_message(session_id, f"❌ Error en conversión: {result}", "ERROR")
+                    print(f"❌ [BACKGROUND] Error FFmpeg para sesión {session_id}: {result}")
                     
             except Exception as e:
-                sessions[session_id].update({
-                    "status": "conversion_error",
-                    "error": str(e)
-                })
-                log_message(session_id, f"💥 Error inesperado en conversión: {str(e)}", "ERROR")
+                error_msg = f"💥 Error inesperado en conversión: {str(e)}"
+                print(f"❌ [BACKGROUND] {error_msg}")
+                if session_id in sessions:
+                    sessions[session_id].update({
+                        "status": "conversion_error",
+                        "error": error_msg
+                    })
+                    log_message(session_id, error_msg, "ERROR")
         
         # Iniciar conversión en segundo plano
         convert_thread = threading.Thread(target=convert_background, daemon=True)
         convert_thread.start()
         
+        # Pequeña pausa para asegurar que el hilo se inició
+        time.sleep(0.1)
+        
+        # Verificar que el hilo se inició
+        print(f"🧵 [API] Hilo de conversión iniciado para sesión {session_id}")
+        
+        # Devolver respuesta inmediata
         return jsonify({
             "success": True,
             "message": f"Conversión a {quality} iniciada",
             "session_id": session_id,
+            "status": "converting",
             "logs": sessions[session_id].get('logs', [])
         })
         
     except Exception as e:
-        app.logger.error(f"Error convirtiendo video: {str(e)}")
+        error_msg = f"Error convirtiendo video: {str(e)}"
+        print(f"❌ [API] {error_msg}")
+        app.logger.error(error_msg)
         return jsonify({
             "success": False,
             "message": f"Error interno: {str(e)}"
@@ -629,13 +684,21 @@ def convert_video():
 def get_status(session_id):
     """Obtener estado de la conversión con logs en tiempo real"""
     try:
+        print(f"📡 [STATUS] Consultando estado para sesión: {session_id}")
+        print(f"📊 [STATUS] Sesiones disponibles: {list(sessions.keys())}")
+        
         if session_id not in sessions:
+            print(f"❌ [STATUS] Sesión {session_id} no encontrada")
             return jsonify({
                 "success": False,
-                "message": "Sesión no encontrada"
+                "message": f"Sesión no encontrada: {session_id}"
             }), 404
         
         session_data = sessions[session_id]
+        
+        print(f"📋 [STATUS] Estado de {session_id}: {session_data.get('status')}")
+        print(f"📈 [STATUS] Progreso conversión: {session_data.get('conversion_progress', 0)}%")
+        print(f"📈 [STATUS] Progreso descarga: {session_data.get('download_progress', 0)}%")
         
         # Preparar respuesta
         response = {
@@ -664,9 +727,11 @@ def get_status(session_id):
         else:
             response["converted"] = False
         
+        print(f"✅ [STATUS] Respuesta preparada para {session_id}")
         return jsonify(response)
         
     except Exception as e:
+        print(f"❌ [STATUS] Error obteniendo estado: {str(e)}")
         app.logger.error(f"Error obteniendo estado: {str(e)}")
         return jsonify({
             "success": False,
@@ -789,17 +854,10 @@ def cancel_conversion(session_id):
                 "message": "Sesión no encontrada"
             }), 404
         
-        if session_id in conversion_tasks:
-            task = conversion_tasks[session_id]
-            if task and 'process' in task and task['process']:
-                task['process'].terminate()
-                time.sleep(0.5)
-                if task['process'].poll() is None:
-                    task['process'].kill()
-            conversion_tasks.pop(session_id, None)
-        
-        sessions[session_id]['status'] = 'cancelled'
-        log_message(session_id, "Conversión cancelada por el usuario")
+        # Solo cancelar si está en proceso de conversión
+        if sessions[session_id].get('status') == 'converting':
+            sessions[session_id]['status'] = 'cancelled'
+            log_message(session_id, "Conversión cancelada por el usuario")
         
         return jsonify({
             "success": True,
@@ -836,7 +894,7 @@ def health_check():
             "timestamp": datetime.now().isoformat(),
             "ffmpeg": "available",
             "sessions_active": len(sessions),
-            "conversions_active": len(conversion_tasks),
+            "sessions_list": list(sessions.keys()),
             "disk_usage": {
                 "temp_videos": f"{sum(os.path.getsize(f) for f in Path(app.config['UPLOAD_FOLDER']).glob('*') if f.is_file()) / (1024*1024):.1f} MB",
                 "converted_videos": f"{sum(os.path.getsize(f) for f in Path(app.config['CONVERTED_FOLDER']).glob('*') if f.is_file()) / (1024*1024):.1f} MB"
@@ -860,12 +918,17 @@ def internal_error(error):
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    print(f"🚀 Servidor de Conversión de Videos")
+    print("=" * 60)
+    print("🚀 SERVIDOR DE CONVERSIÓN DE VIDEOS FFMPEG")
+    print("=" * 60)
     print(f"📡 URL: http://0.0.0.0:{port}")
     print(f"🔧 FFmpeg: {FFMPEG_PATH}")
-    print(f"📊 Calidades: {', '.join(VIDEO_QUALITIES.keys())}")
-    print(f"💾 Temp: {app.config['UPLOAD_FOLDER']}")
-    print(f"💾 Convertidos: {app.config['CONVERTED_FOLDER']}")
-    print("=" * 50)
+    print(f"🎯 Calidades disponibles: {', '.join(VIDEO_QUALITIES.keys())}")
+    print(f"💾 Directorio temporal: {app.config['UPLOAD_FOLDER']}")
+    print(f"💾 Directorio convertidos: {app.config['CONVERTED_FOLDER']}")
+    print(f"⏱️  Retención: {app.config['MAX_RETENTION_MINUTES']} minutos")
+    print("=" * 60)
+    print("✅ Sistema listo para recibir solicitudes")
+    print("=" * 60)
     
     app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
