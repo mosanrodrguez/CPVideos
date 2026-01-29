@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convertidor de Videos con FFmpeg - Proceso en Tiempo Real</title>
+    <title>Convertidor de Videos FFmpeg - Proceso en Tiempo Real</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -839,14 +839,24 @@
             }
             
             statusCheckInterval = setInterval(async () => {
-                if (!currentSessionId) return;
+                if (!currentSessionId) {
+                    console.log('⚠️ No hay sessionId para monitorear');
+                    return;
+                }
                 
                 try {
+                    console.log(`📡 Consultando estado para sesión: ${currentSessionId}`);
                     const response = await fetch(`/api/status/${currentSessionId}`);
                     const data = await response.json();
                     
                     if (!data.success) {
-                        throw new Error(data.message || 'Error en estado');
+                        console.error('❌ Error en respuesta del servidor:', data.message);
+                        if (data.message && data.message.includes('no encontrada')) {
+                            clearInterval(statusCheckInterval);
+                            addLog(`❌ Sesión perdida: ${data.message}`, 'error');
+                            showStatus('Sesión perdida. Intenta nuevamente.', 'error');
+                        }
+                        return;
                     }
                     
                     // Actualizar logs
@@ -909,7 +919,7 @@
                 } catch (error) {
                     console.error('Error en monitoreo:', error);
                 }
-            }, 1500); // Verificar cada 1.5 segundos
+            }, 2000); // Verificar cada 2 segundos
         }
         
         function updateProcessSteps(status, data) {
@@ -1001,23 +1011,35 @@
         
         async function startConversion() {
             if (!selectedQuality || !currentSessionId) {
+                console.error('❌ Falta selectedQuality o currentSessionId');
+                console.log('selectedQuality:', selectedQuality);
+                console.log('currentSessionId:', currentSessionId);
                 showStatus('Por favor, selecciona una calidad', 'error');
                 return;
             }
             
             try {
+                console.log('🚀 Enviando solicitud de conversión...');
+                console.log('Session ID:', currentSessionId);
+                console.log('Calidad:', selectedQuality.quality);
+                
                 addLog(`🚀 Iniciando conversión a ${selectedQuality.quality}...`, 'info');
                 
                 const response = await fetch('/api/convert', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
                     body: JSON.stringify({
                         session_id: currentSessionId,
                         quality: selectedQuality.quality
                     })
                 });
                 
+                console.log('📊 Respuesta del servidor - Status:', response.status);
                 const data = await response.json();
+                console.log('📦 Datos recibidos:', data);
                 
                 if (!response.ok || !data.success) {
                     throw new Error(data.message || 'Error al iniciar conversión');
@@ -1027,6 +1049,7 @@
                 convertBtn.style.display = 'none';
                 
             } catch (error) {
+                console.error('💥 Error completo en startConversion:', error);
                 addLog(`❌ Error: ${error.message}`, 'error');
                 showStatus(`Error: ${error.message}`, 'error');
             }
@@ -1161,6 +1184,7 @@
             // Configurar reproductor
             if (data.video_url) {
                 videoPlayer.src = data.video_url;
+                videoPlayer.load();
             }
         }
         
@@ -1237,6 +1261,9 @@
         window.addEventListener('DOMContentLoaded', () => {
             addLog('✅ Sistema listo. Ingresa una URL de video para comenzar.', 'success');
             showStatus('Sistema listo. Usa una URL directa a un video (MP4, AVI, MOV, etc.)', 'info');
+            
+            // Cargar ejemplo por defecto
+            videoUrlInput.value = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
         });
     </script>
 </body>
