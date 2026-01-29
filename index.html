@@ -3,300 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convertidor de Videos FFmpeg - Proceso en Tiempo Real</title>
+    <title>VideoConverter Pro | FFmpeg en la Nube</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --darker: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --modal-bg: rgba(15, 23, 42, 0.95);
+        }
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f1f1f1;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
             min-height: 100vh;
-            padding: 20px;
+            line-height: 1.6;
         }
         
-        .container {
-            max-width: 1200px;
+        /* Layout Principal */
+        .app-container {
+            max-width: 1400px;
             margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            min-height: 100vh;
         }
         
-        header {
+        /* Panel Principal */
+        .main-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid var(--card-border);
+            padding: 2.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        /* Header */
+        .app-header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            margin-bottom: 3rem;
         }
         
-        h1 {
-            color: #60a5fa;
-            font-size: 2.8rem;
-            margin-bottom: 10px;
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+        
+        .app-title {
+            font-size: 2.5rem;
             font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
         }
         
-        .subtitle {
-            color: #94a3b8;
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-        }
-        
-        .input-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .input-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 10px;
-            color: #38bdf8;
-            font-weight: 600;
+        .app-subtitle {
+            color: var(--gray);
             font-size: 1.1rem;
+        }
+        
+        /* Input Section */
+        .input-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid var(--card-border);
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .input-card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        
+        .input-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--light);
+            margin-bottom: 1rem;
+        }
+        
+        .input-label i {
+            color: var(--primary);
+        }
+        
+        .url-input-container {
+            position: relative;
+            margin-bottom: 1.5rem;
         }
         
         .url-input {
             width: 100%;
-            padding: 18px 20px;
-            background: rgba(255, 255, 255, 0.07);
-            border: 2px solid rgba(96, 165, 250, 0.3);
-            border-radius: 12px;
-            color: white;
+            padding: 1.25rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            color: var(--light);
             font-size: 1.1rem;
             transition: all 0.3s;
+            font-family: 'Monaco', 'Menlo', monospace;
         }
         
         .url-input:focus {
             outline: none;
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
         
         .url-input::placeholder {
-            color: #94a3b8;
+            color: var(--gray);
         }
         
+        .url-examples {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        
+        .url-example {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: var(--gray-light);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .url-example:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+        
+        /* Botones */
         .btn {
-            padding: 18px 35px;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            color: white;
+            padding: 1rem 2rem;
             border: none;
-            border-radius: 12px;
-            font-size: 1.2rem;
+            border-radius: 14px;
+            font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            gap: 0.75rem;
+            width: 100%;
         }
         
-        .btn:hover {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
-            transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(37, 99, 235, 0.3);
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
         }
         
-        .btn:disabled {
-            background: #475569;
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
         
-        .btn-danger {
-            background: linear-gradient(135deg, #ef4444, #dc2626);
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light);
+            border: 1px solid var(--card-border);
         }
         
-        .btn-danger:hover {
-            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
         }
         
         .btn-success {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, var(--secondary), #059669);
+            color: white;
         }
         
-        .btn-success:hover {
-            background: linear-gradient(135deg, #059669, #047857);
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+            color: white;
         }
         
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.92);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-            padding: 20px;
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
         }
         
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        
-        .modal {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            width: 100%;
-            max-width: 800px;
+        /* Video Info Card */
+        .video-info-card {
+            background: rgba(255, 255, 255, 0.02);
             border-radius: 20px;
-            padding: 40px;
-            border: 1px solid rgba(96, 165, 250, 0.3);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
-            max-height: 90vh;
-            overflow-y: auto;
+            padding: 2rem;
+            border: 2px solid var(--card-border);
+            margin-bottom: 2rem;
+            display: none;
         }
         
-        .modal-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        .video-info-card.active {
+            display: block;
+            animation: slideUp 0.4s ease;
         }
         
-        .modal-icon {
-            font-size: 2.5rem;
-            color: #60a5fa;
-        }
-        
-        .modal-title {
-            font-size: 1.8rem;
-            color: #f8fafc;
-            flex-grow: 1;
-        }
-        
-        .close-modal {
-            background: none;
-            border: none;
-            color: #94a3b8;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 5px;
-        }
-        
-        .process-steps {
+        .video-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
-            position: relative;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-border);
         }
         
-        .process-steps::before {
-            content: '';
+        .video-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        .video-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 1.5rem;
+            border-radius: 14px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--light);
+        }
+        
+        .video-player-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .video-player {
             position: absolute;
-            top: 25px;
-            left: 10%;
-            right: 10%;
-            height: 3px;
-            background: #334155;
-            z-index: 1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
         
-        .step {
-            text-align: center;
-            z-index: 2;
-            position: relative;
-            flex: 1;
+        .video-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
         }
         
-        .step-circle {
+        /* Status Cards */
+        .status-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--card-border);
+            margin-bottom: 1.5rem;
+        }
+        
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .status-icon {
             width: 50px;
             height: 50px;
-            border-radius: 50%;
-            background: #334155;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 10px;
-            border: 3px solid #334155;
-            transition: all 0.3s;
-            font-weight: bold;
+            font-size: 1.5rem;
         }
         
-        .step.active .step-circle {
-            background: #3b82f6;
-            border-color: #60a5fa;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        .status-icon.info {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
         }
         
-        .step.completed .step-circle {
-            background: #10b981;
-            border-color: #34d399;
+        .status-icon.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
         }
         
-        .step.error .step-circle {
-            background: #ef4444;
-            border-color: #f87171;
+        .status-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
         }
         
-        .step-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
+        .status-icon.danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
         }
         
-        .step.active .step-label {
-            color: #60a5fa;
+        .status-title {
+            font-size: 1.3rem;
             font-weight: 600;
+            color: var(--light);
         }
         
+        .status-message {
+            color: var(--gray-light);
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Progress Section */
         .progress-section {
-            margin: 30px 0;
+            margin: 1.5rem 0;
         }
         
         .progress-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 10px;
+            margin-bottom: 0.75rem;
         }
         
         .progress-label {
-            color: #cbd5e1;
-            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--gray);
+            font-weight: 500;
         }
         
         .progress-percent {
-            color: #60a5fa;
-            font-weight: bold;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary);
         }
         
         .progress-bar {
-            height: 25px;
-            background: #334155;
-            border-radius: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
             overflow: hidden;
-            margin-bottom: 15px;
+            margin-bottom: 0.5rem;
         }
         
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            border-radius: 12px;
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            border-radius: 6px;
             width: 0%;
-            transition: width 0.5s;
+            transition: width 0.5s ease;
             position: relative;
-            overflow: hidden;
         }
         
         .progress-fill::after {
@@ -310,340 +430,396 @@
             animation: shimmer 2s infinite;
         }
         
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+        /* Quality Selector */
+        .quality-section {
+            margin: 2rem 0;
+            display: none;
         }
         
-        .quality-section {
-            margin: 30px 0;
+        .quality-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
         }
         
         .quality-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin: 20px 0;
+            gap: 1rem;
+            margin: 1.5rem 0;
         }
         
         .quality-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.03);
             border: 2px solid transparent;
+            border-radius: 14px;
+            padding: 1.5rem;
+            cursor: pointer;
             transition: all 0.3s;
+            text-align: center;
         }
         
         .quality-card:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
+            background: rgba(99, 102, 241, 0.05);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
         }
         
         .quality-card.selected {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: #3b82f6;
-            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+            background: rgba(99, 102, 241, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.15);
         }
         
         .quality-name {
             font-size: 1.4rem;
-            color: #60a5fa;
             font-weight: 700;
-            margin-bottom: 5px;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
         }
         
         .quality-details {
-            color: #94a3b8;
             font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.4;
         }
         
-        .logs-container {
+        /* Logs Panel */
+        .logs-card {
             background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 30px;
-            max-height: 300px;
-            overflow-y: auto;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         
         .logs-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--card-border);
         }
         
         .logs-title {
-            color: #cbd5e1;
+            font-size: 1.2rem;
             font-weight: 600;
+            color: var(--light);
+        }
+        
+        .logs-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--gray-light);
+        }
+        
+        .logs-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 400px;
+            padding-right: 0.5rem;
         }
         
         .log-entry {
-            padding: 10px 0;
+            padding: 0.75rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
             font-size: 0.9rem;
             line-height: 1.5;
         }
         
         .log-time {
-            color: #94a3b8;
-            margin-right: 10px;
+            color: var(--gray);
+            margin-right: 0.75rem;
+            font-size: 0.85rem;
         }
         
-        .log-info {
-            color: #60a5fa;
-        }
+        .log-info { color: var(--primary); }
+        .log-success { color: var(--secondary); }
+        .log-error { color: var(--danger); }
+        .log-warning { color: var(--warning); }
         
-        .log-success {
-            color: #10b981;
-        }
-        
-        .log-error {
-            color: #ef4444;
-        }
-        
-        .log-warning {
-            color: #f59e0b;
-        }
-        
-        .video-section {
-            display: none;
-            margin-top: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .video-section.active {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .video-header {
+        /* Steps Indicator */
+        .steps-container {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        
-        .video-title {
-            font-size: 1.8rem;
-            color: #f8fafc;
-        }
-        
-        .video-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 20px;
-            border-left: 4px solid #3b82f6;
-        }
-        
-        .stat-label {
-            color: #94a3b8;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-        
-        .stat-value {
-            color: #f8fafc;
-            font-size: 1.3rem;
-            font-weight: 700;
-        }
-        
-        .video-player-container {
             position: relative;
-            width: 100%;
-            padding-top: 56.25%; /* 16:9 */
-            background: #000;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 25px;
+            margin: 2rem 0;
         }
         
-        .video-player {
+        .steps-container::before {
+            content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+            top: 24px;
+            left: 50px;
+            right: 50px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
         }
         
-        .action-buttons {
+        .step {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+            position: relative;
+            flex: 1;
         }
         
-        .status-message {
-            padding: 15px;
-            border-radius: 12px;
-            margin: 15px 0;
-            font-weight: 600;
-            display: none;
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            border: 2px solid transparent;
+            transition: all 0.3s;
         }
         
-        .status-success {
-            background: rgba(16, 185, 129, 0.2);
-            color: #10b981;
-            border: 1px solid #10b981;
+        .step.active .step-circle {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
         }
         
-        .status-error {
-            background: rgba(239, 68, 68, 0.2);
-            color: #ef4444;
-            border: 1px solid #ef4444;
+        .step.completed .step-circle {
+            background: var(--secondary);
+            color: white;
+            border-color: var(--secondary);
         }
         
-        .status-info {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-            border: 1px solid #60a5fa;
+        .step.error .step-circle {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
         }
         
-        .url-examples {
-            margin-top: 15px;
+        .step-label {
             font-size: 0.9rem;
-            color: #94a3b8;
+            color: var(--gray);
+            text-align: center;
+            max-width: 100px;
         }
         
-        .url-examples a {
-            color: #60a5fa;
-            text-decoration: none;
-            margin: 0 5px;
+        .step.active .step-label {
+            color: var(--light);
+            font-weight: 500;
         }
         
-        .url-examples a:hover {
-            text-decoration: underline;
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .steps-container::before {
+                left: 30px;
+                right: 30px;
+            }
         }
         
         @media (max-width: 768px) {
-            .process-steps {
-                flex-direction: column;
-                gap: 20px;
+            .app-container {
+                padding: 1rem;
             }
             
-            .process-steps::before {
-                display: none;
+            .main-panel {
+                padding: 1.5rem;
+            }
+            
+            .app-title {
+                font-size: 2rem;
+            }
+            
+            .video-stats-grid {
+                grid-template-columns: 1fr;
             }
             
             .quality-grid {
                 grid-template-columns: 1fr;
             }
             
-            .action-buttons {
+            .steps-container {
                 flex-direction: column;
+                gap: 1.5rem;
             }
             
-            h1 {
-                font-size: 2rem;
+            .steps-container::before {
+                display: none;
             }
             
-            .modal {
-                padding: 25px;
+            .step {
+                flex-direction: row;
+                gap: 1rem;
+                align-items: center;
             }
+            
+            .step-label {
+                text-align: left;
+                max-width: none;
+            }
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--modal-bg);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            padding: 2rem;
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background: var(--dark);
+            border-radius: 24px;
+            padding: 2.5rem;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+        
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--light);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--gray);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            transition: color 0.2s;
+        }
+        
+        .close-modal:hover {
+            color: var(--light);
+        }
+        
+        /* Utils */
+        .hidden {
+            display: none !important;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-2 { margin-top: 2rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        .mt-1 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 1rem; }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-video"></i> Convertidor de Videos FFmpeg</h1>
-            <p class="subtitle">Descarga y convierte videos en tiempo real con monitoreo completo del proceso</p>
-        </header>
-        
-        <div id="statusMessage" class="status-message"></div>
-        
-        <div class="input-section">
-            <div class="input-group">
-                <label for="videoUrl"><i class="fas fa-link"></i> URL del Video (MP4, AVI, MOV, etc.)</label>
-                <input type="text" id="videoUrl" class="url-input" placeholder="https://ejemplo.com/video.mp4">
-                <div class="url-examples">
-                    Ejemplos de prueba: 
-                    <a href="#" onclick="document.getElementById('videoUrl').value='https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'">Big Buck Bunny</a> | 
-                    <a href="#" onclick="document.getElementById('videoUrl').value='https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'">Elephant's Dream</a>
+    <div class="app-container">
+        <!-- Panel Principal -->
+        <div class="main-panel">
+            <!-- Header -->
+            <div class="app-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h1 class="app-title">VideoConverter Pro</h1>
+                        <p class="app-subtitle">Conversión de videos en tiempo real con FFmpeg</p>
+                    </div>
                 </div>
-            </div>
-            <button id="processBtn" class="btn">
-                <i class="fas fa-cloud-download-alt"></i> Procesar Video
-            </button>
-        </div>
-        
-        <div class="video-section" id="videoPlayerSection">
-            <div class="video-header">
-                <h2 class="video-title" id="convertedTitle">Video Convertido</h2>
-                <button id="newConversionBtn" class="btn btn-success">
-                    <i class="fas fa-sync-alt"></i> Nueva Conversión
-                </button>
-            </div>
-            
-            <div class="video-stats" id="videoStats">
-                <!-- Las estadísticas se llenarán dinámicamente -->
-            </div>
-            
-            <div class="video-player-container">
-                <video class="video-player" id="videoPlayer" controls>
-                    Tu navegador no soporta la reproducción de videos.
-                </video>
-            </div>
-            
-            <div class="action-buttons">
-                <button id="downloadBtn" class="btn">
-                    <i class="fas fa-download"></i> Descargar Video
-                </button>
-                <button id="viewLogsBtn" class="btn">
-                    <i class="fas fa-scroll"></i> Ver Logs Completos
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal de Proceso en Tiempo Real -->
-    <div class="modal-overlay" id="modalOverlay">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-icon" id="modalIcon">
-                    <i class="fas fa-cogs"></i>
-                </div>
-                <h2 class="modal-title" id="modalTitle">Procesando Video</h2>
-                <button class="close-modal" id="closeModal">&times;</button>
             </div>
             
             <!-- Pasos del Proceso -->
-            <div class="process-steps" id="processSteps">
+            <div class="steps-container">
                 <div class="step" id="step1">
                     <div class="step-circle">1</div>
-                    <div class="step-label">Validando URL</div>
+                    <div class="step-label">Ingresar URL</div>
                 </div>
                 <div class="step" id="step2">
                     <div class="step-circle">2</div>
-                    <div class="step-label">Descargando</div>
+                    <div class="step-label">Descargar</div>
                 </div>
                 <div class="step" id="step3">
                     <div class="step-circle">3</div>
-                    <div class="step-label">Analizando</div>
+                    <div class="step-label">Seleccionar</div>
                 </div>
                 <div class="step" id="step4">
                     <div class="step-circle">4</div>
-                    <div class="step-label">Convirtiendo</div>
+                    <div class="step-label">Convertir</div>
                 </div>
                 <div class="step" id="step5">
                     <div class="step-circle">5</div>
@@ -651,149 +827,602 @@
                 </div>
             </div>
             
-            <!-- Progreso de Descarga -->
-            <div class="progress-section" id="downloadProgressSection">
-                <div class="progress-header">
-                    <span class="progress-label">Progreso de Descarga</span>
-                    <span class="progress-percent" id="downloadPercent">0%</span>
+            <!-- Input Section -->
+            <div class="input-card">
+                <div class="input-label">
+                    <i class="fas fa-link"></i>
+                    <span>URL del Video</span>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="downloadProgressBar"></div>
+                <div class="url-input-container">
+                    <input type="text" id="videoUrl" class="url-input" 
+                           placeholder="https://ejemplo.com/video.mp4">
                 </div>
+                <div class="url-examples">
+                    <div class="url-example" onclick="loadExample('bigbuck')">
+                        Big Buck Bunny
+                    </div>
+                    <div class="url-example" onclick="loadExample('elephants')">
+                        Elephant's Dream
+                    </div>
+                    <div class="url-example" onclick="loadExample('joyrides')">
+                        For Bigger Joyrides
+                    </div>
+                </div>
+                <button id="processBtn" class="btn btn-primary mt-2">
+                    <i class="fas fa-cloud-download-alt"></i>
+                    <span>Procesar Video</span>
+                </button>
             </div>
             
-            <!-- Progreso de Conversión -->
-            <div class="progress-section" id="conversionProgressSection" style="display: none;">
-                <div class="progress-header">
-                    <span class="progress-label">Progreso de Conversión FFmpeg</span>
-                    <span class="progress-percent" id="conversionPercent">0%</span>
+            <!-- Video Info (oculto inicialmente) -->
+            <div class="video-info-card" id="videoInfoCard">
+                <div class="video-header">
+                    <h3 class="video-title" id="convertedTitle">Video Convertido</h3>
+                    <button id="newConversionBtn" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i>
+                        Nuevo
+                    </button>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="conversionProgressBar"></div>
+                
+                <div class="video-stats-grid" id="videoStats">
+                    <!-- Stats se llenan dinámicamente -->
                 </div>
-            </div>
-            
-            <!-- Selección de Calidad -->
-            <div class="quality-section" id="qualitySection" style="display: none;">
-                <h3 style="color: #f8fafc; margin-bottom: 20px;">
-                    <i class="fas fa-sliders-h"></i> Selecciona Calidad de Conversión
-                </h3>
-                <div class="quality-grid" id="qualityOptions">
-                    <!-- Las opciones se llenarán dinámicamente -->
+                
+                <div class="video-player-container">
+                    <video class="video-player" id="videoPlayer" controls>
+                        Tu navegador no soporta la reproducción de videos.
+                    </video>
                 </div>
-                <div style="text-align: center; margin-top: 25px;">
-                    <button id="convertBtn" class="btn" style="padding: 15px 40px; font-size: 1.3rem;">
-                        <i class="fas fa-bolt"></i> Iniciar Conversión FFmpeg
+                
+                <div class="video-actions">
+                    <button id="downloadBtn" class="btn btn-success">
+                        <i class="fas fa-download"></i>
+                        Descargar Video
+                    </button>
+                    <button id="playBtn" class="btn btn-primary">
+                        <i class="fas fa-play"></i>
+                        Reproducir
                     </button>
                 </div>
             </div>
             
-            <!-- Logs en Tiempo Real -->
-            <div class="logs-container">
-                <div class="logs-header">
-                    <span class="logs-title">
-                        <i class="fas fa-terminal"></i> Logs en Tiempo Real
-                    </span>
-                    <span class="logs-count" id="logsCount">0 mensajes</span>
+            <!-- Status Messages -->
+            <div class="status-card hidden" id="statusCard">
+                <div class="status-header">
+                    <div class="status-icon info" id="statusIcon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                        <h4 class="status-title" id="statusTitle">Estado del Proceso</h4>
+                        <p class="status-message" id="statusMessage">Esperando acción...</p>
+                    </div>
                 </div>
-                <div id="logsContent">
-                    <!-- Los logs se agregarán aquí -->
+                
+                <!-- Progress Bars -->
+                <div class="progress-section" id="downloadProgressSection">
+                    <div class="progress-header">
+                        <span class="progress-label">Descarga</span>
+                        <span class="progress-percent" id="downloadPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="downloadProgressBar"></div>
+                    </div>
+                </div>
+                
+                <div class="progress-section hidden" id="conversionProgressSection">
+                    <div class="progress-header">
+                        <span class="progress-label">Conversión FFmpeg</span>
+                        <span class="progress-percent" id="conversionPercent">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="conversionProgressBar"></div>
+                    </div>
                 </div>
             </div>
             
-            <!-- Botones de Acción -->
-            <div class="action-buttons" style="margin-top: 30px; justify-content: center;">
-                <button id="cancelBtn" class="btn btn-danger" style="display: none;">
-                    <i class="fas fa-times"></i> Cancelar Proceso
+            <!-- Quality Selector -->
+            <div class="quality-section" id="qualitySection">
+                <div class="input-label">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>Seleccionar Calidad</span>
+                </div>
+                <div class="quality-grid" id="qualityOptions">
+                    <!-- Quality cards se llenan dinámicamente -->
+                </div>
+                <button id="convertBtn" class="btn btn-primary mt-2">
+                    <i class="fas fa-bolt"></i>
+                    <span>Iniciar Conversión</span>
                 </button>
-                <button id="viewVideoBtn" class="btn btn-success" style="display: none;">
-                    <i class="fas fa-play"></i> Ver Video Convertido
-                </button>
+                <div class="text-center mt-1">
+                    <button id="cancelBtn" class="btn btn-danger hidden">
+                        <i class="fas fa-times"></i>
+                        Cancelar Proceso
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Stats Card -->
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-icon success">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div>
+                        <h4 class="status-title">Estadísticas</h4>
+                    </div>
+                </div>
+                <div class="video-stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Sesión Actual</div>
+                        <div class="stat-value" id="currentSessionId">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Estado</div>
+                        <div class="stat-value" id="currentStatus">Inactivo</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Archivos</div>
+                        <div class="stat-value" id="filesCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Tiempo</div>
+                        <div class="stat-value" id="processTime">0s</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Logs Panel -->
+            <div class="logs-card">
+                <div class="logs-header">
+                    <h4 class="logs-title">
+                        <i class="fas fa-terminal"></i>
+                        Logs en Tiempo Real
+                    </h4>
+                    <span class="logs-count" id="logsCount">0</span>
+                </div>
+                <div class="logs-content" id="logsContent">
+                    <!-- Logs se agregan dinámicamente -->
+                </div>
+            </div>
+            
+            <!-- Actions Card -->
+            <div class="status-card">
+                <div class="status-header">
+                    <div class="status-icon warning">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div>
+                        <h4 class="status-title">Acciones Rápidas</h4>
+                    </div>
+                </div>
+                <div class="video-actions">
+                    <button id="clearLogsBtn" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i>
+                        Limpiar Logs
+                    </button>
+                    <button id="testConnectionBtn" class="btn btn-secondary">
+                        <i class="fas fa-wifi"></i>
+                        Test Servidor
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
+    <!-- Modal de Proceso -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Proceso en Ejecución</h3>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="steps-container mb-2">
+                <div class="step" id="modalStep1">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Validar</div>
+                </div>
+                <div class="step" id="modalStep2">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Descargar</div>
+                </div>
+                <div class="step" id="modalStep3">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Analizar</div>
+                </div>
+                <div class="step" id="modalStep4">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Convertir</div>
+                </div>
+                <div class="step" id="modalStep5">
+                    <div class="step-circle">5</div>
+                    <div class="step-label">Completo</div>
+                </div>
+            </div>
+            
+            <div class="progress-section mb-2">
+                <div class="progress-header">
+                    <span class="progress-label">Progreso Total</span>
+                    <span class="progress-percent" id="modalProgressPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="modalProgressBar"></div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-2">
+                <button id="modalCancelBtn" class="btn btn-danger">
+                    <i class="fas fa-stop-circle"></i>
+                    Cancelar Proceso
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // =============== VARIABLES GLOBALES ===============
         let currentSessionId = null;
         let selectedQuality = null;
         let statusCheckInterval = null;
         let logs = [];
+        let processStartTime = null;
         let currentStep = 1;
         
         // =============== ELEMENTOS DOM ===============
+        // Inputs y botones principales
         const videoUrlInput = document.getElementById('videoUrl');
         const processBtn = document.getElementById('processBtn');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const closeModal = document.getElementById('closeModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalIcon = document.getElementById('modalIcon');
-        const processSteps = document.getElementById('processSteps');
+        
+        // Secciones
+        const videoInfoCard = document.getElementById('videoInfoCard');
+        const statusCard = document.getElementById('statusCard');
+        const qualitySection = document.getElementById('qualitySection');
+        
+        // Progress
         const downloadProgressSection = document.getElementById('downloadProgressSection');
         const conversionProgressSection = document.getElementById('conversionProgressSection');
         const downloadProgressBar = document.getElementById('downloadProgressBar');
         const conversionProgressBar = document.getElementById('conversionProgressBar');
         const downloadPercent = document.getElementById('downloadPercent');
         const conversionPercent = document.getElementById('conversionPercent');
-        const qualitySection = document.getElementById('qualitySection');
+        
+        // Steps
+        const steps = {
+            step1: document.getElementById('step1'),
+            step2: document.getElementById('step2'),
+            step3: document.getElementById('step3'),
+            step4: document.getElementById('step4'),
+            step5: document.getElementById('step5')
+        };
+        
+        // Quality selector
         const qualityOptions = document.getElementById('qualityOptions');
         const convertBtn = document.getElementById('convertBtn');
-        const logsContent = document.getElementById('logsContent');
-        const logsCount = document.getElementById('logsCount');
         const cancelBtn = document.getElementById('cancelBtn');
-        const viewVideoBtn = document.getElementById('viewVideoBtn');
-        const videoPlayerSection = document.getElementById('videoPlayerSection');
+        
+        // Video player
         const videoPlayer = document.getElementById('videoPlayer');
         const videoStats = document.getElementById('videoStats');
         const convertedTitle = document.getElementById('convertedTitle');
         const downloadBtn = document.getElementById('downloadBtn');
+        const playBtn = document.getElementById('playBtn');
         const newConversionBtn = document.getElementById('newConversionBtn');
-        const viewLogsBtn = document.getElementById('viewLogsBtn');
+        
+        // Logs
+        const logsContent = document.getElementById('logsContent');
+        const logsCount = document.getElementById('logsCount');
+        
+        // Stats
+        const currentSessionIdSpan = document.getElementById('currentSessionId');
+        const currentStatusSpan = document.getElementById('currentStatus');
+        const filesCountSpan = document.getElementById('filesCount');
+        const processTimeSpan = document.getElementById('processTime');
+        
+        // Status card
+        const statusTitle = document.getElementById('statusTitle');
         const statusMessage = document.getElementById('statusMessage');
+        const statusIcon = document.getElementById('statusIcon');
         
-        // =============== EVENT LISTENERS ===============
-        processBtn.addEventListener('click', processVideo);
-        closeModal.addEventListener('click', hideModal);
-        convertBtn.addEventListener('click', startConversion);
-        cancelBtn.addEventListener('click', cancelProcess);
-        viewVideoBtn.addEventListener('click', showVideoPlayer);
-        downloadBtn.addEventListener('click', downloadVideo);
-        newConversionBtn.addEventListener('click', resetApp);
-        viewLogsBtn.addEventListener('click', () => {
+        // Modal
+        const modalOverlay = document.getElementById('modalOverlay');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalProgressBar = document.getElementById('modalProgressBar');
+        const modalProgressPercent = document.getElementById('modalProgressPercent');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        
+        // Modal steps
+        const modalSteps = {
+            step1: document.getElementById('modalStep1'),
+            step2: document.getElementById('modalStep2'),
+            step3: document.getElementById('modalStep3'),
+            step4: document.getElementById('modalStep4'),
+            step5: document.getElementById('modalStep5')
+        };
+        
+        // Sidebar buttons
+        const clearLogsBtn = document.getElementById('clearLogsBtn');
+        const testConnectionBtn = document.getElementById('testConnectionBtn');
+        
+        // =============== FUNCIONES DE EJEMPLOS ===============
+        function loadExample(type) {
+            const examples = {
+                'bigbuck': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                'elephants': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+                'joyrides': 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4'
+            };
+            
+            videoUrlInput.value = examples[type] || examples.bigbuck;
+            addLog(`📋 Ejemplo cargado: ${type}`, 'info');
+        }
+        
+        // =============== FUNCIONES DE LOGS ===============
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            
+            // Determinar clase CSS
+            let typeClass = 'log-info';
+            if (type === 'success') typeClass = 'log-success';
+            if (type === 'error') typeClass = 'log-error';
+            if (type === 'warning') typeClass = 'log-warning';
+            
+            logEntry.innerHTML = `
+                <span class="log-time">[${timestamp}]</span>
+                <span class="${typeClass}">${message}</span>
+            `;
+            
+            logsContent.appendChild(logEntry);
+            logsContent.scrollTop = logsContent.scrollHeight;
+            
+            // Actualizar contador
+            const count = logsContent.children.length;
+            logsCount.textContent = count;
+            
+            // Guardar en array
+            logs.push(`[${timestamp}] ${message}`);
+        }
+        
+        function clearLogs() {
+            logsContent.innerHTML = '';
+            logs = [];
+            logsCount.textContent = '0';
+            addLog('🧹 Logs limpiados', 'info');
+        }
+        
+        // =============== FUNCIONES DE ESTADO ===============
+        function updateStatus(title, message, type = 'info') {
+            statusCard.classList.remove('hidden');
+            statusTitle.textContent = title;
+            statusMessage.textContent = message;
+            
+            // Actualizar icono
+            const icon = statusIcon.querySelector('i');
+            icon.className = `fas fa-${getIconForType(type)}`;
+            statusIcon.className = `status-icon ${type}`;
+            
+            // Actualizar estado en sidebar
+            currentStatusSpan.textContent = title;
+        }
+        
+        function getIconForType(type) {
+            const icons = {
+                'info': 'info-circle',
+                'success': 'check-circle',
+                'warning': 'exclamation-triangle',
+                'danger': 'times-circle'
+            };
+            return icons[type] || 'info-circle';
+        }
+        
+        function updateStats() {
             if (currentSessionId) {
-                showModal();
-                updateLogsDisplay();
+                currentSessionIdSpan.textContent = currentSessionId.substring(0, 8) + '...';
             }
-        });
+            
+            // Actualizar tiempo de proceso
+            if (processStartTime) {
+                const elapsed = Math.floor((Date.now() - processStartTime) / 1000);
+                processTimeSpan.textContent = `${elapsed}s`;
+            }
+        }
         
-        // =============== FUNCIONES PRINCIPALES ===============
+        // =============== FUNCIONES DE PROGRESO ===============
+        function updateProgress(progressBar, percentElement, value) {
+            const progress = Math.min(100, Math.max(0, value));
+            progressBar.style.width = `${progress}%`;
+            percentElement.textContent = `${progress}%`;
+        }
+        
+        function updateModalProgress(value) {
+            updateProgress(modalProgressBar, modalProgressPercent, value);
+        }
+        
+        // =============== FUNCIONES DE PASOS ===============
+        function updateStep(stepNumber, state = 'active') {
+            currentStep = stepNumber;
+            
+            // Resetear todos los pasos
+            Object.values(steps).forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+            
+            Object.values(modalSteps).forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+            
+            // Marcar pasos anteriores como completados
+            for (let i = 1; i < stepNumber; i++) {
+                if (steps[`step${i}`]) steps[`step${i}`].classList.add('completed');
+                if (modalSteps[`step${i}`]) modalSteps[`step${i}`].classList.add('completed');
+            }
+            
+            // Marcar paso actual
+            if (steps[`step${stepNumber}`]) {
+                if (state !== 'completed') {
+                    steps[`step${stepNumber}`].classList.add('active');
+                    modalSteps[`step${stepNumber}`]?.classList.add('active');
+                }
+                if (state === 'error') {
+                    steps[`step${stepNumber}`].classList.add('error');
+                    modalSteps[`step${stepNumber}`]?.classList.add('error');
+                }
+            }
+            
+            // Actualizar progreso del modal
+            updateModalProgress((stepNumber - 1) * 25);
+        }
+        
+        function resetSteps() {
+            Object.values(steps).forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+            
+            Object.values(modalSteps).forEach(step => {
+                step.classList.remove('active', 'completed', 'error');
+            });
+            
+            updateModalProgress(0);
+            currentStep = 1;
+        }
+        
+        // =============== FUNCIONES DE INTERFAZ ===============
+        function showSection(section) {
+            // Ocultar todas las secciones
+            videoInfoCard.classList.remove('active');
+            qualitySection.classList.remove('active');
+            downloadProgressSection.classList.add('hidden');
+            conversionProgressSection.classList.add('hidden');
+            
+            // Mostrar sección específica
+            switch(section) {
+                case 'quality':
+                    qualitySection.classList.add('active');
+                    break;
+                case 'video':
+                    videoInfoCard.classList.add('active');
+                    break;
+                case 'download-progress':
+                    downloadProgressSection.classList.remove('hidden');
+                    break;
+                case 'conversion-progress':
+                    conversionProgressSection.classList.remove('hidden');
+                    break;
+            }
+        }
+        
+        function renderQualityOptions(qualities) {
+            qualityOptions.innerHTML = '';
+            
+            qualities.forEach(quality => {
+                const card = document.createElement('div');
+                card.className = 'quality-card';
+                card.dataset.quality = quality.quality;
+                
+                card.innerHTML = `
+                    <div class="quality-name">${quality.quality}</div>
+                    <div class="quality-details">
+                        <div>${quality.resolution}</div>
+                        <div>${quality.bitrate}</div>
+                        <div>${quality.size}</div>
+                    </div>
+                `;
+                
+                card.addEventListener('click', () => {
+                    // Deseleccionar todas
+                    document.querySelectorAll('.quality-card').forEach(c => {
+                        c.classList.remove('selected');
+                    });
+                    
+                    // Seleccionar esta
+                    card.classList.add('selected');
+                    selectedQuality = quality;
+                    
+                    addLog(`🎯 Calidad seleccionada: ${quality.quality} (${quality.resolution})`, 'info');
+                });
+                
+                // Seleccionar 720p por defecto
+                if (quality.quality === '720p') {
+                    card.classList.add('selected');
+                    selectedQuality = quality;
+                }
+                
+                qualityOptions.appendChild(card);
+            });
+            
+            showSection('quality');
+        }
+        
+        function updateVideoInfo(data) {
+            if (!data.video_info) return;
+            
+            // Actualizar título
+            if (data.video_info.title) {
+                convertedTitle.textContent = data.video_info.title;
+            }
+            
+            // Actualizar estadísticas
+            const quality = data.quality || selectedQuality?.quality || 'N/A';
+            const convertedSize = data.converted_info?.size_formatted || 'Procesando...';
+            
+            videoStats.innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-label">Resolución Original</div>
+                    <div class="stat-value">${data.video_info.width}x${data.video_info.height}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Calidad Convertida</div>
+                    <div class="stat-value">${quality}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Duración</div>
+                    <div class="stat-value">${data.video_info.duration_formatted}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Tamaño Final</div>
+                    <div class="stat-value">${convertedSize}</div>
+                </div>
+            `;
+            
+            // Configurar reproductor
+            if (data.video_url) {
+                videoPlayer.src = data.video_url;
+            }
+        }
+        
+        // =============== FUNCIONES DE PROCESO ===============
         async function processVideo() {
             const url = videoUrlInput.value.trim();
             
             if (!url) {
-                showStatus('Por favor, ingresa una URL válida', 'error');
+                updateStatus('Error', 'Por favor, ingresa una URL válida', 'danger');
                 return;
             }
             
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
-                showStatus('La URL debe comenzar con http:// o https://', 'error');
+                updateStatus('Error', 'La URL debe comenzar con http:// o https://', 'danger');
                 return;
             }
             
-            // Resetear variables
-            currentSessionId = null;
-            selectedQuality = null;
-            logs = [];
-            currentStep = 1;
+            // Resetear estado
+            resetApp();
+            processStartTime = Date.now();
             
             // Actualizar UI
             processBtn.disabled = true;
             processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-            resetSteps();
             updateStep(1);
             showModal();
-            addLog('🔄 Iniciando proceso de conversión de video', 'info');
-            addLog(`📥 URL ingresada: ${url}`, 'info');
+            updateStatus('Validando URL', 'Verificando la URL del video...', 'info');
+            
+            addLog('🔄 Iniciando proceso de conversión', 'info');
+            addLog(`📥 URL: ${url.substring(0, 60)}${url.length > 60 ? '...' : ''}`, 'info');
             
             try {
                 const response = await fetch('/api/process', {
@@ -818,10 +1447,11 @@
                     addLog(`🎯 ${data.qualities.length} calidades disponibles`, 'info');
                 }
                 
-                // Iniciar monitoreo en tiempo real
-                startRealTimeMonitoring();
+                // Iniciar monitoreo
+                startStatusMonitoring();
                 
-                showStatus('Proceso iniciado correctamente', 'success');
+                updateStatus('Descargando', 'Iniciando descarga del video...', 'info');
+                updateStep(2);
                 
             } catch (error) {
                 console.error('Error:', error);
@@ -829,11 +1459,11 @@
                 processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
                 addLog(`❌ Error: ${error.message}`, 'error');
                 updateStep(1, 'error');
-                showStatus(`Error: ${error.message}`, 'error');
+                updateStatus('Error', error.message, 'danger');
             }
         }
         
-        function startRealTimeMonitoring() {
+        function startStatusMonitoring() {
             if (statusCheckInterval) {
                 clearInterval(statusCheckInterval);
             }
@@ -845,16 +1475,15 @@
                 }
                 
                 try {
-                    console.log(`📡 Consultando estado para sesión: ${currentSessionId}`);
                     const response = await fetch(`/api/status/${currentSessionId}`);
                     const data = await response.json();
                     
                     if (!data.success) {
-                        console.error('❌ Error en respuesta del servidor:', data.message);
-                        if (data.message && data.message.includes('no encontrada')) {
+                        console.error('❌ Error en estado:', data.message);
+                        if (data.message?.includes('no encontrada')) {
                             clearInterval(statusCheckInterval);
                             addLog(`❌ Sesión perdida: ${data.message}`, 'error');
-                            showStatus('Sesión perdida. Intenta nuevamente.', 'error');
+                            updateStatus('Error', 'Sesión perdida. Intenta nuevamente.', 'danger');
                         }
                         return;
                     }
@@ -866,271 +1495,117 @@
                         logs = data.logs;
                     }
                     
-                    // Actualizar pasos según estado
-                    updateProcessSteps(data.status, data);
-                    
                     // Actualizar progresos
                     if (data.download_progress !== undefined) {
-                        updateDownloadProgress(data.download_progress);
+                        updateProgress(downloadProgressBar, downloadPercent, data.download_progress);
                     }
                     
                     if (data.conversion_progress !== undefined) {
-                        updateConversionProgress(data.conversion_progress);
+                        updateProgress(conversionProgressBar, conversionPercent, data.conversion_progress);
                     }
                     
-                    // Manejar estados especiales
-                    switch(data.status) {
-                        case 'downloaded':
-                            if (qualitySection.style.display === 'none') {
-                                showQualitySelection();
-                                addLog('✅ Video descargado y listo para conversión', 'success');
-                            }
-                            break;
-                            
-                        case 'completed':
-                            clearInterval(statusCheckInterval);
-                            updateStep(5, 'completed');
-                            conversionProgressSection.style.display = 'none';
-                            viewVideoBtn.style.display = 'inline-flex';
-                            cancelBtn.style.display = 'none';
-                            
-                            // Mostrar información del video convertido
-                            if (data.converted_info) {
-                                addLog('🎉 Conversión completada exitosamente!', 'success');
-                                updateVideoInfo(data);
-                            }
-                            break;
-                            
-                        case 'error':
-                        case 'conversion_error':
-                            clearInterval(statusCheckInterval);
-                            updateStep(currentStep, 'error');
-                            showStatus(`Error: ${data.error || 'Error en el proceso'}`, 'error');
-                            addLog(`❌ ${data.error || 'Error en el proceso'}`, 'error');
-                            break;
-                            
-                        case 'cancelled':
-                            clearInterval(statusCheckInterval);
-                            addLog('⏹️ Proceso cancelado por el usuario', 'warning');
-                            showStatus('Proceso cancelado', 'info');
-                            break;
-                    }
+                    // Manejar estados
+                    handleStatusUpdate(data);
+                    
+                    // Actualizar estadísticas
+                    updateStats();
                     
                 } catch (error) {
                     console.error('Error en monitoreo:', error);
                 }
-            }, 2000); // Verificar cada 2 segundos
+            }, 2000);
         }
         
-        function updateProcessSteps(status, data) {
-            switch(status) {
-                case 'validating':
-                    updateStep(1, 'active');
-                    modalTitle.textContent = 'Validando URL';
-                    modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                    break;
-                    
+        function handleStatusUpdate(data) {
+            switch(data.status) {
                 case 'downloading':
-                    updateStep(2, 'active');
-                    modalTitle.textContent = 'Descargando Video';
-                    modalIcon.innerHTML = '<i class="fas fa-cloud-download-alt"></i>';
-                    downloadProgressSection.style.display = 'block';
+                    updateStep(2);
+                    updateStatus('Descargando', 'Descargando video desde el servidor...', 'info');
+                    showSection('download-progress');
                     break;
                     
                 case 'downloaded':
-                    updateStep(2, 'completed');
-                    updateStep(3, 'active');
-                    modalTitle.textContent = 'Video Descargado';
-                    modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
-                    downloadProgressSection.style.display = 'none';
+                    updateStep(3);
+                    updateStatus('Listo para convertir', 'Video descargado. Selecciona la calidad deseada.', 'success');
+                    showSection('quality');
                     
                     if (data.video_info) {
-                        addLog(`📊 Video analizado: ${data.video_info.width}x${data.video_info.height}, ${data.video_info.duration_formatted}, ${data.video_info.size_formatted}`, 'info');
+                        addLog(`📊 Video analizado: ${data.video_info.width}x${data.video_info.height}, ${data.video_info.duration_formatted}`, 'info');
                     }
                     break;
                     
                 case 'converting':
-                    updateStep(3, 'completed');
-                    updateStep(4, 'active');
-                    modalTitle.textContent = 'Convirtiendo con FFmpeg';
-                    modalIcon.innerHTML = '<i class="fas fa-cogs"></i>';
-                    qualitySection.style.display = 'none';
-                    conversionProgressSection.style.display = 'block';
-                    cancelBtn.style.display = 'inline-flex';
+                    updateStep(4);
+                    updateStatus('Convirtiendo', 'Procesando video con FFmpeg...', 'warning');
+                    showSection('conversion-progress');
+                    convertBtn.style.display = 'none';
+                    cancelBtn.classList.remove('hidden');
                     break;
                     
                 case 'completed':
-                    updateStep(4, 'completed');
+                    clearInterval(statusCheckInterval);
                     updateStep(5, 'completed');
-                    modalTitle.textContent = 'Conversión Completada';
-                    modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+                    updateStatus('Completado', 'Video convertido exitosamente!', 'success');
+                    showSection('video');
+                    cancelBtn.classList.add('hidden');
+                    hideModal();
+                    
+                    if (data.converted_info) {
+                        addLog('🎉 Conversión completada exitosamente!', 'success');
+                        updateVideoInfo(data);
+                        videoPlayer.play();
+                    }
+                    break;
+                    
+                case 'error':
+                case 'conversion_error':
+                    clearInterval(statusCheckInterval);
+                    updateStep(currentStep, 'error');
+                    updateStatus('Error', data.error || 'Error en el proceso', 'danger');
+                    addLog(`❌ ${data.error || 'Error en el proceso'}`, 'error');
+                    hideModal();
+                    break;
+                    
+                case 'cancelled':
+                    clearInterval(statusCheckInterval);
+                    updateStatus('Cancelado', 'Proceso cancelado por el usuario', 'warning');
+                    addLog('⏹️ Proceso cancelado', 'warning');
+                    hideModal();
                     break;
             }
-        }
-        
-        function renderQualityOptions(qualities) {
-            qualityOptions.innerHTML = '';
-            
-            qualities.forEach(quality => {
-                const card = document.createElement('div');
-                card.className = 'quality-card';
-                card.dataset.quality = quality.quality;
-                
-                card.innerHTML = `
-                    <div class="quality-name">${quality.quality}</div>
-                    <div class="quality-details">
-                        <div>Resolución: ${quality.resolution}</div>
-                        <div>Bitrate: ${quality.bitrate}</div>
-                        <div>Tamaño: ${quality.size}</div>
-                    </div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    document.querySelectorAll('.quality-card').forEach(c => {
-                        c.classList.remove('selected');
-                    });
-                    card.classList.add('selected');
-                    selectedQuality = quality;
-                    addLog(`🎯 Calidad seleccionada: ${quality.quality} (${quality.resolution})`, 'info');
-                });
-                
-                // Seleccionar 720p por defecto
-                if (quality.quality === '720p') {
-                    card.classList.add('selected');
-                    selectedQuality = quality;
-                }
-                
-                qualityOptions.appendChild(card);
-            });
-        }
-        
-        function showQualitySelection() {
-            qualitySection.style.display = 'block';
-            addLog('👉 Selecciona la calidad deseada para la conversión', 'info');
         }
         
         async function startConversion() {
             if (!selectedQuality || !currentSessionId) {
-                console.error('❌ Falta selectedQuality o currentSessionId');
-                console.log('selectedQuality:', selectedQuality);
-                console.log('currentSessionId:', currentSessionId);
-                showStatus('Por favor, selecciona una calidad', 'error');
+                updateStatus('Error', 'Por favor, selecciona una calidad', 'danger');
                 return;
             }
             
             try {
-                console.log('🚀 Enviando solicitud de conversión...');
-                console.log('Session ID:', currentSessionId);
-                console.log('Calidad:', selectedQuality.quality);
-                
                 addLog(`🚀 Iniciando conversión a ${selectedQuality.quality}...`, 'info');
                 
                 const response = await fetch('/api/convert', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         session_id: currentSessionId,
                         quality: selectedQuality.quality
                     })
                 });
                 
-                console.log('📊 Respuesta del servidor - Status:', response.status);
                 const data = await response.json();
-                console.log('📦 Datos recibidos:', data);
                 
                 if (!response.ok || !data.success) {
                     throw new Error(data.message || 'Error al iniciar conversión');
                 }
                 
-                addLog('⚙️ FFmpeg iniciado. El proceso puede tomar varios minutos...', 'info');
-                convertBtn.style.display = 'none';
+                addLog('⚙️ FFmpeg iniciado. Convirtiendo video...', 'info');
                 
             } catch (error) {
-                console.error('💥 Error completo en startConversion:', error);
+                console.error('Error:', error);
                 addLog(`❌ Error: ${error.message}`, 'error');
-                showStatus(`Error: ${error.message}`, 'error');
+                updateStatus('Error', error.message, 'danger');
             }
-        }
-        
-        function updateDownloadProgress(percent) {
-            const progress = Math.min(100, Math.max(0, percent));
-            downloadProgressBar.style.width = `${progress}%`;
-            downloadPercent.textContent = `${progress}%`;
-        }
-        
-        function updateConversionProgress(percent) {
-            const progress = Math.min(100, Math.max(0, percent));
-            conversionProgressBar.style.width = `${progress}%`;
-            conversionPercent.textContent = `${progress}%`;
-        }
-        
-        function updateStep(stepNumber, state = 'active') {
-            currentStep = stepNumber;
-            
-            // Resetear todos los pasos
-            for (let i = 1; i <= 5; i++) {
-                const step = document.getElementById(`step${i}`);
-                step.classList.remove('active', 'completed', 'error');
-                
-                if (i < stepNumber) {
-                    step.classList.add('completed');
-                }
-            }
-            
-            // Establecer estado del paso actual
-            const currentStepEl = document.getElementById(`step${stepNumber}`);
-            if (currentStepEl) {
-                if (state !== 'completed') {
-                    currentStepEl.classList.add('active');
-                }
-                if (state === 'error') {
-                    currentStepEl.classList.add('error');
-                }
-            }
-        }
-        
-        function resetSteps() {
-            for (let i = 1; i <= 5; i++) {
-                const step = document.getElementById(`step${i}`);
-                step.classList.remove('active', 'completed', 'error');
-            }
-        }
-        
-        function addLog(message, type = 'info') {
-            const timestamp = new Date().toLocaleTimeString();
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry';
-            
-            let typeClass = 'log-info';
-            if (type === 'success') typeClass = 'log-success';
-            if (type === 'error') typeClass = 'log-error';
-            if (type === 'warning') typeClass = 'log-warning';
-            
-            logEntry.innerHTML = `
-                <span class="log-time">[${timestamp}]</span>
-                <span class="${typeClass}">${message}</span>
-            `;
-            
-            logsContent.appendChild(logEntry);
-            logsContent.scrollTop = logsContent.scrollHeight;
-            
-            // Actualizar contador
-            const count = logsContent.children.length;
-            logsCount.textContent = `${count} mensaje${count !== 1 ? 's' : ''}`;
-        }
-        
-        function updateLogsDisplay() {
-            logsContent.innerHTML = '';
-            logs.forEach(log => {
-                const logEntry = document.createElement('div');
-                logEntry.className = 'log-entry';
-                logEntry.textContent = log;
-                logsContent.appendChild(logEntry);
-            });
-            logsContent.scrollTop = logsContent.scrollHeight;
         }
         
         async function cancelProcess() {
@@ -1144,54 +1619,13 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    addLog('⏹️ Solicitando cancelación del proceso...', 'warning');
+                    addLog('⏹️ Solicitando cancelación...', 'warning');
                     cancelBtn.disabled = true;
                     cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelando...';
                 }
             } catch (error) {
                 addLog(`❌ Error al cancelar: ${error.message}`, 'error');
             }
-        }
-        
-        function updateVideoInfo(data) {
-            if (!data.video_info || !data.converted_info) return;
-            
-            // Actualizar título
-            if (data.video_info.title) {
-                convertedTitle.textContent = data.video_info.title;
-            }
-            
-            // Actualizar estadísticas
-            videoStats.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Resolución Original</div>
-                    <div class="stat-value">${data.video_info.width}x${data.video_info.height}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Calidad Convertida</div>
-                    <div class="stat-value">${data.quality || selectedQuality?.quality || 'N/A'}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Duración</div>
-                    <div class="stat-value">${data.video_info.duration_formatted}</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Tamaño Final</div>
-                    <div class="stat-value">${data.converted_info.size_formatted || 'N/A'}</div>
-                </div>
-            `;
-            
-            // Configurar reproductor
-            if (data.video_url) {
-                videoPlayer.src = data.video_url;
-                videoPlayer.load();
-            }
-        }
-        
-        function showVideoPlayer() {
-            hideModal();
-            videoPlayerSection.classList.add('active');
-            showStatus('Video listo para reproducir o descargar', 'success');
         }
         
         async function downloadVideo() {
@@ -1207,12 +1641,25 @@
                 document.body.removeChild(link);
                 
                 addLog('📥 Descarga iniciada', 'success');
-                showStatus('Descarga iniciada', 'success');
+                updateStatus('Descargando', 'Iniciando descarga del video convertido...', 'success');
+                
             } catch (error) {
-                showStatus('Error al descargar', 'error');
+                updateStatus('Error', 'No se pudo iniciar la descarga', 'danger');
             }
         }
         
+        // =============== FUNCIONES DE MODAL ===============
+        function showModal() {
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        
+        // =============== FUNCIONES DE RESET ===============
         function resetApp() {
             // Detener monitoreo
             if (statusCheckInterval) {
@@ -1221,50 +1668,95 @@
             }
             
             // Resetear UI
-            videoPlayerSection.classList.remove('active');
+            videoInfoCard.classList.remove('active');
             videoPlayer.pause();
             videoPlayer.currentTime = 0;
             videoPlayer.src = '';
-            videoUrlInput.value = '';
             processBtn.disabled = false;
             processBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Procesar Video';
+            convertBtn.style.display = 'flex';
+            cancelBtn.classList.add('hidden');
             
             // Resetear variables
             currentSessionId = null;
             selectedQuality = null;
-            logs = [];
-            currentStep = 1;
+            processStartTime = null;
             
-            showStatus('Listo para nueva conversión', 'info');
-        }
-        
-        function showModal() {
-            modalOverlay.classList.add('active');
-            updateLogsDisplay();
-        }
-        
-        function hideModal() {
-            modalOverlay.classList.remove('active');
-        }
-        
-        function showStatus(message, type = 'info') {
-            statusMessage.textContent = message;
-            statusMessage.className = `status-message status-${type}`;
-            statusMessage.style.display = 'block';
+            // Resetear pasos
+            resetSteps();
             
-            setTimeout(() => {
-                statusMessage.style.display = 'none';
-            }, 5000);
+            // Actualizar estado
+            updateStatus('Listo', 'Ingresa una URL para comenzar', 'info');
+            currentSessionIdSpan.textContent = '-';
+            currentStatusSpan.textContent = 'Inactivo';
+            processTimeSpan.textContent = '0s';
         }
         
-        // Inicialización
-        window.addEventListener('DOMContentLoaded', () => {
-            addLog('✅ Sistema listo. Ingresa una URL de video para comenzar.', 'success');
-            showStatus('Sistema listo. Usa una URL directa a un video (MP4, AVI, MOV, etc.)', 'info');
+        // =============== FUNCIONES DE TEST ===============
+        async function testConnection() {
+            try {
+                addLog('🔄 Probando conexión con el servidor...', 'info');
+                
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'healthy') {
+                    addLog('✅ Servidor funcionando correctamente', 'success');
+                    updateStatus('Conectado', 'Servidor funcionando correctamente', 'success');
+                } else {
+                    addLog('⚠️ Servidor reportó problemas', 'warning');
+                    updateStatus('Advertencia', 'El servidor reportó problemas', 'warning');
+                }
+            } catch (error) {
+                addLog('❌ No se pudo conectar al servidor', 'error');
+                updateStatus('Error', 'No se pudo conectar al servidor', 'danger');
+            }
+        }
+        
+        // =============== EVENT LISTENERS ===============
+        processBtn.addEventListener('click', processVideo);
+        convertBtn.addEventListener('click', startConversion);
+        cancelBtn.addEventListener('click', cancelProcess);
+        downloadBtn.addEventListener('click', downloadVideo);
+        playBtn.addEventListener('click', () => videoPlayer.play());
+        newConversionBtn.addEventListener('click', resetApp);
+        
+        // Modal
+        closeModal.addEventListener('click', hideModal);
+        modalCancelBtn.addEventListener('click', cancelProcess);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) hideModal();
+        });
+        
+        // Sidebar buttons
+        clearLogsBtn.addEventListener('click', clearLogs);
+        testConnectionBtn.addEventListener('click', testConnection);
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideModal();
+            if (e.key === 'Enter' && e.ctrlKey) processVideo();
+        });
+        
+        // =============== INICIALIZACIÓN ===============
+        function init() {
+            addLog('✅ VideoConverter Pro inicializado', 'success');
+            addLog('📝 Ingresa una URL de video para comenzar', 'info');
+            updateStatus('Listo', 'Sistema inicializado correctamente', 'success');
             
             // Cargar ejemplo por defecto
-            videoUrlInput.value = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-        });
+            loadExample('bigbuck');
+            
+            // Actualizar estadísticas periódicamente
+            setInterval(updateStats, 1000);
+        }
+        
+        // Iniciar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
