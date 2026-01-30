@@ -1,5 +1,0 @@
-Flask
-Flask-CORS
-Werkzeug
-gunicorn
-yt-dlp
