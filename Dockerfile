@@ -1,23 +1,18 @@
-FROM python:3.9-slim
+FROM golang:1.21-alpine AS builder
+WORKDIR /app
+COPY go.mod go.sum ./
+RUN go mod download
+COPY . .
+RUN go build -o bot .
 
-# Instalar solo dependencias esenciales del sistema
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+FROM alpine:latest
+# 1. Instala Python y pip para yt-dlp
+RUN apk --no-cache add python3 py3-pip
+# 2. Instala un entorno de JavaScript (Deno, recomendado por yt-dlp)
+RUN apk --no-cache add deno
+# 3. Instala yt-dlp
+RUN pip3 install yt-dlp
 
 WORKDIR /app
-
-# Copiar requirements primero (para mejor caché de Docker)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copiar el resto de archivos
-COPY . .
-
-# Crear directorios necesarios
-RUN mkdir -p temp_videos converted_videos
-
-EXPOSE 5000
-
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "server:app"]
+COPY --from=builder /app/bot .
+CMD ["./bot"]
