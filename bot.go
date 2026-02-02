@@ -1,546 +1,500 @@
 package main
 
 import (
-    "encoding/json"
-    "fmt"
-    "log"
-    "os"
-    "os/exec"
-    "os/signal"
-    "path/filepath"
-    "strings"
-    "syscall"
-    "time"
+	"bufio"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"math"
+	"net/http"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"regexp"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
 
-    tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+// Configuración global
+const (
+	MaxFileSizeBotAPI = 50 * 1024 * 1024 // 50MB (Límite estándar de Telegram Bot API)
+	DownloadDir       = "./temp_downloads"
+	UpdateInterval    = 3 * time.Second // Intervalo para actualizar la barra de progreso
 )
 
 type DownloadBot struct {
-    bot         *tgbotapi.BotAPI
-    downloadDir string
-    userStates  map[int64]*UserState
+	bot        *tgbotapi.BotAPI
+	httpClient *http.Client
+	userStates sync.Map // Thread-safe map
 }
 
-type UserState struct {
-    LastURL    string
-    LastFormat string // "video" o "audio"
-    Formats    []FormatInfo
-}
-
-type FormatInfo struct {
-    FormatID   string `json:"format_id"`
-    Ext        string `json:"ext"`
-    Resolution string `json:"resolution"`
-    Filesize   int64  `json:"filesize,omitempty"`
-    FormatNote string `json:"format_note"`
-    AudioCodec string `json:"acodec"`
-    VideoCodec string `json:"vcodec"`
-}
-
-type VideoInfo struct {
-    Title    string       `json:"title"`
-    Formats  []FormatInfo `json:"formats"`
-    WebpageURL string     `json:"webpage_url"`
+type VideoMetaData struct {
+	ID         string  `json:"id"`
+	Title      string  `json:"title"`
+	Duration   float64 `json:"duration"`
+	Thumbnail  string  `json:"thumbnail"`
+	WebpageURL string  `json:"webpage_url"`
+	Formats    []struct {
+		FormatID   string `json:"format_id"`
+		Ext        string `json:"ext"`
+		Height     int    `json:"height"`
+		VideoCodec string `json:"vcodec"`
+		AudioCodec string `json:"acodec"`
+		Filesize   int64  `json:"filesize,omitempty"`
+	} `json:"formats"`
 }
 
 func main() {
-    // Obtener token
-    token := os.Getenv("TELEGRAM_BOT_TOKEN")
-    if token == "" {
-        log.Fatal("❌ Configura TELEGRAM_BOT_TOKEN en variables de entorno")
-    }
+	// Verificar herramientas externas
+	if _, err := exec.LookPath("yt-dlp"); err != nil {
+		log.Fatal("❌ 'yt-dlp' no está instalado o no está en el PATH.")
+	}
+	if _, err := exec.LookPath("ffmpeg"); err != nil {
+		log.Fatal("❌ 'ffmpeg' no está instalado. Es necesario para procesar videos.")
+	}
 
-    // Crear bot
-    bot, err := tgbotapi.NewBotAPI(token)
-    if err != nil {
-        log.Panic("❌ Error creando bot:", err)
-    }
+	token := os.Getenv("TELEGRAM_BOT_TOKEN")
+	if token == "" {
+		log.Fatal("❌ Configura TELEGRAM_BOT_TOKEN en variables de entorno")
+	}
 
-    bot.Debug = true
-    log.Printf("🤖 Bot iniciado como: @%s", bot.Self.UserName)
+	bot, err := tgbotapi.NewBotAPI(token)
+	if err != nil {
+		log.Panic("❌ Error creando bot:", err)
+	}
 
-    // Crear directorio de descargas
-    downloadDir := "./temp_downloads"
-    if err := os.MkdirAll(downloadDir, 0755); err != nil {
-        log.Fatal("❌ Error creando directorio:", err)
-    }
+	log.Printf("🤖 Bot iniciado como: @%s", bot.Self.UserName)
 
-    // Crear instancia del bot
-    downloadBot := &DownloadBot{
-        bot:         bot,
-        downloadDir: downloadDir,
-        userStates:  make(map[int64]*UserState),
-    }
+	if err := os.MkdirAll(DownloadDir, 0755); err != nil {
+		log.Fatal("❌ Error creando directorio:", err)
+	}
 
-    // Limpiador automático
-    go downloadBot.autoCleaner()
+	downloadBot := &DownloadBot{
+		bot:        bot,
+		httpClient: &http.Client{Timeout: 30 * time.Second},
+	}
 
-    // Configurar updates
-    u := tgbotapi.NewUpdate(0)
-    u.Timeout = 60
-    updates := bot.GetUpdatesChan(u)
+	// Limpiador automático en segundo plano
+	go downloadBot.autoCleaner()
 
-    // Manejar señales de cierre
-    sigChan := make(chan os.Signal, 1)
-    signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	updates := bot.GetUpdatesChan(u)
 
-    log.Println("✅ Bot listo. Envía un enlace para comenzar...")
+	// Manejo graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-    // Procesar mensajes
-    for {
-        select {
-        case update := <-updates:
-            downloadBot.handleUpdate(update)
-        case <-sigChan:
-            log.Println("🔄 Apagando bot...")
-            // Limpiar archivos temporales
-            os.RemoveAll(downloadDir)
-            return
-        }
-    }
+	go func() {
+		<-sigChan
+		log.Println("🔄 Apagando bot y limpiando...")
+		os.RemoveAll(DownloadDir)
+		os.Exit(0)
+	}()
+
+	for update := range updates {
+		// Usamos goroutines para no bloquear el bot con cada mensaje
+		go downloadBot.handleUpdate(update)
+	}
 }
 
 func (b *DownloadBot) handleUpdate(update tgbotapi.Update) {
-    if update.Message != nil {
-        b.handleMessage(update.Message)
-    } else if update.CallbackQuery != nil {
-        b.handleCallback(update.CallbackQuery)
-    }
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("⚠️ Pánico recuperado: %v", r)
+		}
+	}()
+
+	if update.Message != nil {
+		b.handleMessage(update.Message)
+	} else if update.CallbackQuery != nil {
+		b.handleCallback(update.CallbackQuery)
+	}
 }
 
 func (b *DownloadBot) handleMessage(message *tgbotapi.Message) {
-    chatID := message.Chat.ID
-    text := strings.TrimSpace(message.Text)
+	chatID := message.Chat.ID
+	text := strings.TrimSpace(message.Text)
 
-    // Verificar si es un enlace
-    if strings.HasPrefix(text, "http://") || strings.HasPrefix(text, "https://") {
-        b.processLink(chatID, text)
-        return
-    }
+	if message.IsCommand() {
+		switch message.Command() {
+		case "start", "help":
+			b.sendMessage(chatID, "🎬 *Video Downloader Pro*\n\nEnvía un enlace de YouTube, TikTok, Instagram, Twitter, etc.\n\nEl bot detectará automáticamente las calidades disponibles.")
+		}
+		return
+	}
 
-    // Comandos
-    if message.IsCommand() {
-        switch message.Command() {
-        case "start":
-            b.sendMessage(chatID, 
-                "🎬 *Bienvenido a VideoDown*\n\n" +
-                "📥 *¿Cómo usar?*\n" +
-                "1. Envía cualquier enlace de video\n" +
-                "2. Selecciona si quieres Video o Audio\n" +
-                "3. Elige la calidad deseada\n" +
-                "4. ¡Listo! El archivo se descargará y enviará automáticamente\n\n" +
-                "⚠️ *Nota:* Este bot se encuentra en desarrollo, puede reportar errores y sugerencias a @mosanrodrguez.")
-        case "help":
-            b.sendMessage(chatID,
-                "🆘 *Ayuda*\n\n" +
-                "• Solo envía un enlace y sigue los pasos\n" +
-                "• Formatos soportados: MP4, MP3, M4A, WEBM\n" +
-                "• Plataformas: YouTube, TikTok, Instagram, Twitter, Facebook, etc.\n" +
-                "• Bot en desarrollo, pueden ocurrir fallos.")
-        default:
-            b.sendMessage(chatID, "❓ Comando no reconocido. Envía un enlace para comenzar.")
-        }
-        return
-    }
-
-    b.sendMessage(chatID, "📥 Envía un enlace de video para descargarlo.")
+	if strings.HasPrefix(text, "http") {
+		b.processLink(chatID, text)
+	} else {
+		b.sendMessage(chatID, "📥 Por favor, envía un enlace válido.")
+	}
 }
 
 func (b *DownloadBot) processLink(chatID int64, url string) {
-    // Mostrar mensaje de procesamiento
-    msg := b.sendMessage(chatID, "🔍 Verificando enlace...")
+	msg := b.sendMessage(chatID, "🔍 *Analizando enlace...*")
 
-    // Verificar si el enlace es válido
-    if !b.isValidURL(url) {
-        b.editMessage(chatID, msg.MessageID, "❌ Enlace no válido o no soportado")
-        return
-    }
+	// Usamos contexto para cancelar si tarda mucho
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 
-    // Guardar estado del usuario
-    b.userStates[chatID] = &UserState{
-        LastURL: url,
-    }
+	cmd := exec.CommandContext(ctx, "yt-dlp", "-j", "--no-playlist", url)
+	output, err := cmd.Output()
 
-    // Mostrar opciones Video/Audio
-    b.editMessage(chatID, msg.MessageID, "✅ Enlace válido\n\n¿Qué deseas descargar?")
-    b.sendFormatOptions(chatID)
+	if err != nil {
+		log.Printf("Error yt-dlp: %v", err)
+		b.editMessage(chatID, msg.MessageID, "❌ No se pudo procesar el enlace. Verifica que sea público y válido.")
+		return
+	}
+
+	var meta VideoMetaData
+	if err := json.Unmarshal(output, &meta); err != nil {
+		b.editMessage(chatID, msg.MessageID, "❌ Error leyendo metadatos.")
+		return
+	}
+
+	// Guardamos estado temporalmente
+	b.userStates.Store(chatID, &meta)
+
+	// Crear teclado
+	keyboard := b.createQualityKeyboard(chatID, &meta)
+	b.editMessageMarkup(chatID, msg.MessageID, fmt.Sprintf("🎥 *%s*\n\nSelecciona una opción:", escapeMarkdown(meta.Title)), keyboard)
 }
 
-func (b *DownloadBot) sendFormatOptions(chatID int64) {
-    keyboard := tgbotapi.NewInlineKeyboardMarkup(
-        tgbotapi.NewInlineKeyboardRow(
-            tgbotapi.NewInlineKeyboardButtonData("🎥 Video", "type:video"),
-            tgbotapi.NewInlineKeyboardButtonData("🎵 Audio", "type:audio"),
-        ),
-    )
+func (b *DownloadBot) createQualityKeyboard(chatID int64, meta *VideoMetaData) tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
 
-    msg := tgbotapi.NewMessage(chatID, "Selecciona el tipo de descarga:")
-    msg.ReplyMarkup = keyboard
-    b.bot.Send(msg)
+	// 1. Botón Audio MP3
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("🎵 Audio (MP3)", "dl:audio:best"),
+	})
+
+	// 2. Analizar resoluciones de video únicas
+	resolutions := make(map[int]bool)
+	for _, f := range meta.Formats {
+		// Solo queremos formatos de video que tengan una altura definida
+		if f.VideoCodec != "none" && f.Height > 0 {
+			resolutions[f.Height] = true
+		}
+	}
+
+	// Convertir map a slice para ordenar
+	var heights []int
+	for h := range resolutions {
+		heights = append(heights, h)
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(heights))) // De mayor a menor
+
+	// Crear botones para resoluciones (máximo 4 para no saturar)
+	var videoRow []tgbotapi.InlineKeyboardButton
+	count := 0
+	for _, h := range heights {
+		if count >= 4 {
+			break
+		}
+		label := fmt.Sprintf("%dp", h)
+		data := fmt.Sprintf("dl:video:%d", h)
+		videoRow = append(videoRow, tgbotapi.NewInlineKeyboardButtonData(label, data))
+		count++
+	}
+
+	// Dividir botones de video en filas de 2
+	for i := 0; i < len(videoRow); i += 2 {
+		end := i + 2
+		if end > len(videoRow) {
+			end = len(videoRow)
+		}
+		rows = append(rows, videoRow[i:end])
+	}
+
+	rows = append(rows, []tgbotapi.InlineKeyboardButton{
+		tgbotapi.NewInlineKeyboardButtonData("❌ Cancelar", "cancel"),
+	})
+
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 
-func (b *DownloadBot) handleCallback(callback *tgbotapi.CallbackQuery) {
-    chatID := callback.Message.Chat.ID
-    data := callback.Data
-    messageID := callback.Message.MessageID
+func (b *DownloadBot) handleCallback(cb *tgbotapi.CallbackQuery) {
+	data := cb.Data
+	chatID := cb.Message.Chat.ID
+	msgID := cb.Message.MessageID
 
-    // Responder al callback
-    b.bot.Send(tgbotapi.NewCallback(callback.ID, "⏳ Procesando..."))
+	// Respuesta rápida para que el relojito de carga desaparezca
+	b.bot.Request(tgbotapi.NewCallback(cb.ID, ""))
 
-    parts := strings.Split(data, ":")
-    if len(parts) < 2 {
-        return
-    }
+	if data == "cancel" {
+		b.deleteMessage(chatID, msgID)
+		b.userStates.Delete(chatID)
+		return
+	}
 
-    action := parts[0]
-    value := parts[1]
+	parts := strings.Split(data, ":")
+	if len(parts) < 3 || parts[0] != "dl" {
+		return
+	}
 
-    state, exists := b.userStates[chatID]
-    if !exists || state.LastURL == "" {
-        b.editMessage(chatID, messageID, "❌ Sesión expirada. Envía el enlace nuevamente.")
-        return
-    }
+	mode := parts[1] // video o audio
+	quality := parts[2]
 
-    switch action {
-    case "type":
-        // Video o Audio seleccionado
-        state.LastFormat = value
-        b.editMessage(chatID, messageID, fmt.Sprintf("🔍 Buscando formatos de %s disponibles...", value))
-        b.showAvailableFormats(chatID, state.LastURL, value)
+	val, ok := b.userStates.Load(chatID)
+	if !ok {
+		b.editMessage(chatID, msgID, "❌ Sesión expirada. Envía el enlace de nuevo.")
+		return
+	}
+	meta := val.(*VideoMetaData)
 
-    case "format":
-        // Formato específico seleccionado
-        if len(parts) == 3 {
-            formatID := parts[2]
-            b.downloadAndSend(chatID, state.LastURL, formatID, value)
-            // Eliminar mensaje con botones
-            b.deleteMessage(chatID, messageID)
-        }
-
-    case "cancel":
-        b.deleteMessage(chatID, messageID)
-        delete(b.userStates, chatID)
-    }
+	// Iniciar proceso de descarga en goroutine
+	go b.performDownload(chatID, msgID, meta, mode, quality)
 }
 
-func (b *DownloadBot) showAvailableFormats(chatID int64, url, formatType string) {
-    // Obtener información del video
-    info, err := b.getVideoInfo(url)
-    if err != nil {
-        b.sendMessage(chatID, "❌ Error al obtener información del video")
-        return
-    }
+func (b *DownloadBot) performDownload(chatID int64, msgID int, meta *VideoMetaData, mode, quality string) {
+	// 1. Preparar rutas
+	fileName := fmt.Sprintf("vid_%d_%d", chatID, time.Now().Unix())
+	filePathNoExt := filepath.Join(DownloadDir, fileName)
+	
+	// Plantilla de salida para yt-dlp
+	outputTemplate := filePathNoExt + ".%(ext)s"
 
-    // Filtrar formatos según el tipo seleccionado
-    var availableFormats []FormatInfo
-    if formatType == "video" {
-        availableFormats = b.filterVideoFormats(info.Formats)
-    } else {
-        availableFormats = b.filterAudioFormats(info.Formats)
-    }
+	var args []string
+	var finalExt string
 
-    if len(availableFormats) == 0 {
-        b.sendMessage(chatID, "❌ No se encontraron formatos disponibles")
-        return
-    }
+	// 2. Configurar argumentos de yt-dlp
+	if mode == "audio" {
+		finalExt = ".mp3"
+		args = []string{
+			"-f", "bestaudio/best",
+			"-x", "--audio-format", "mp3",
+			"--audio-quality", "0",
+			"-o", outputTemplate,
+			meta.WebpageURL,
+		}
+	} else {
+		// Video: Usar fusión de streams si es necesario
+		finalExt = ".mp4"
+		formatSelector := fmt.Sprintf("bestvideo[height<=%s]+bestaudio/best[height<=%s]/best", quality, quality)
+		
+		args = []string{
+			"-f", formatSelector,
+			"--merge-output-format", "mp4",
+			"-o", outputTemplate,
+			meta.WebpageURL,
+		}
+	}
 
-    // Guardar formatos en el estado
-    if state, exists := b.userStates[chatID]; exists {
-        state.Formats = availableFormats
-    }
+	// 3. Ejecutar descarga con monitoreo de progreso
+	b.editMessage(chatID, msgID, "🚀 *Iniciando descarga...*")
+	
+	finalPath := filePathNoExt + finalExt
+	
+	// Usamos un cmd wrapper para leer stdout
+	cmd := exec.Command("yt-dlp", args...)
+	
+	// Pipe para leer el progreso
+	stdout, _ := cmd.StdoutPipe()
+	if err := cmd.Start(); err != nil {
+		b.editMessage(chatID, msgID, "❌ Error al iniciar descarga.")
+		return
+	}
 
-    // Mostrar botones con formatos disponibles
-    b.sendFormatButtons(chatID, availableFormats, formatType, info.Title)
+	// Monitor de progreso
+	done := make(chan bool)
+	go b.monitorProgress(stdout, chatID, msgID, done)
+
+	err := cmd.Wait()
+	done <- true // Detener monitor
+
+	if err != nil {
+		log.Printf("Error descarga: %v", err)
+		b.editMessage(chatID, msgID, "❌ Error durante la descarga o conversión.")
+		os.Remove(finalPath) // Limpieza
+		return
+	}
+
+	// 4. Verificación de archivo
+	fileInfo, err := os.Stat(finalPath)
+	if err != nil {
+		b.editMessage(chatID, msgID, "❌ Archivo no encontrado tras descarga.")
+		return
+	}
+
+	if fileInfo.Size() > MaxFileSizeBotAPI {
+		b.editMessage(chatID, msgID, fmt.Sprintf("❌ El archivo es demasiado grande (%d MB). El límite de Telegram es 50MB.", fileInfo.Size()/(1024*1024)))
+		os.Remove(finalPath)
+		return
+	}
+
+	// 5. Descargar miniatura (Thumbnail)
+	thumbPath := ""
+	if meta.Thumbnail != "" {
+		thumbPath = filepath.Join(DownloadDir, fileName+"_thumb.jpg")
+		if err := b.downloadFile(meta.Thumbnail, thumbPath); err != nil {
+			thumbPath = "" // Si falla, enviamos sin thumbnail
+		}
+	}
+
+	// 6. Subir a Telegram
+	b.editMessage(chatID, msgID, "📤 *Subiendo a Telegram...*")
+	b.uploadFile(chatID, finalPath, thumbPath, mode, meta, msgID)
+	
+	// 7. Limpieza final
+	os.Remove(finalPath)
+	if thumbPath != "" {
+		os.Remove(thumbPath)
+	}
+	b.userStates.Delete(chatID)
+	b.deleteMessage(chatID, msgID) // Borrar mensaje de estado
 }
 
-func (b *DownloadBot) sendFormatButtons(chatID int64, formats []FormatInfo, formatType, title string) {
-    // Limitar a 8 formatos para no saturar
-    if len(formats) > 8 {
-        formats = formats[:8]
-    }
+func (b *DownloadBot) monitorProgress(r io.Reader, chatID int64, msgID int, done chan bool) {
+	scanner := bufio.NewScanner(r)
+	ticker := time.NewTicker(UpdateInterval)
+	defer ticker.Stop()
 
-    // Crear filas de botones
-    var rows [][]tgbotapi.InlineKeyboardButton
-    for i, format := range formats {
-        // Crear etiqueta para el botón
-        label := b.formatLabel(format, formatType)
-        
-        // Crear callback data: format:type:formatID
-        callbackData := fmt.Sprintf("format:%s:%s", formatType, format.FormatID)
-        
-        btn := tgbotapi.NewInlineKeyboardButtonData(label, callbackData)
-        
-        // Agregar a filas (2 botones por fila)
-        if i%2 == 0 {
-            rows = append(rows, []tgbotapi.InlineKeyboardButton{btn})
-        } else {
-            rows[len(rows)-1] = append(rows[len(rows)-1], btn)
-        }
-    }
+	var lastLine string
+	
+	// Regex para capturar porcentaje de yt-dlp [download] 45.5% ...
+	re := regexp.MustCompile(`\[download\]\s+(\d+\.\d+)%`)
 
-    // Agregar botón de cancelar
-    rows = append(rows, []tgbotapi.InlineKeyboardButton{
-        tgbotapi.NewInlineKeyboardButtonData("❌ Cancelar", "cancel"),
-    })
-
-    keyboard := tgbotapi.NewInlineKeyboardMarkup(rows...)
-
-    // Crear mensaje con título truncado
-    displayTitle := title
-    if len(displayTitle) > 50 {
-        displayTitle = displayTitle[:47] + "..."
-    }
-
-    msgText := fmt.Sprintf("📋 *%s*\n\n", displayTitle)
-    msgText += fmt.Sprintf("Selecciona una calidad de *%s*:\n", formatType)
-    
-    msg := tgbotapi.NewMessage(chatID, msgText)
-    msg.ParseMode = "Markdown"
-    msg.ReplyMarkup = keyboard
-    b.bot.Send(msg)
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			if lastLine == "" {
+				continue
+			}
+			matches := re.FindStringSubmatch(lastLine)
+			if len(matches) > 1 {
+				percent := matches[1]
+				bar := generateProgressBar(percent)
+				b.editMessage(chatID, msgID, fmt.Sprintf("⏬ *Descargando: %s%%*\n%s", percent, bar))
+			}
+		default:
+			if scanner.Scan() {
+				text := scanner.Text()
+				// Solo guardamos líneas de descarga, ignoramos logs de ffmpeg
+				if strings.Contains(text, "[download]") {
+					lastLine = text
+				}
+			} else {
+				// Si termina el scan, esperamos señal done
+				time.Sleep(500 * time.Millisecond)
+			}
+		}
+	}
 }
 
-func (b *DownloadBot) formatLabel(format FormatInfo, formatType string) string {
-    var label string
-    
-    if formatType == "video" {
-        // Para video: Resolución + Formato + Tamaño
-        if format.Resolution != "" {
-            label = format.Resolution
-        } else if format.FormatNote != "" {
-            label = format.FormatNote
-        } else {
-            label = "SD"
-        }
-        
-        label += " " + strings.ToUpper(format.Ext)
-        
-    } else {
-        // Para audio: Formato + Calidad + Tamaño
-        label = strings.ToUpper(format.Ext)
-        if format.FormatNote != "" {
-            label += " " + format.FormatNote
-        }
-    }
-    
-    // Agregar tamaño si está disponible
-    if format.Filesize > 0 {
-        sizeMB := float64(format.Filesize) / (1024 * 1024)
-        label += fmt.Sprintf(" (%.1fMB)", sizeMB)
-    }
-    
-    return label
+func (b *DownloadBot) uploadFile(chatID int64, filePath, thumbPath, mode string, meta *VideoMetaData, statusMsgID int) {
+	file := tgbotapi.FilePath(filePath)
+
+	var msg tgbotapi.Chattable
+	
+	if mode == "audio" {
+		audio := tgbotapi.NewAudio(chatID, file)
+		audio.Title = meta.Title
+		audio.Performer = "Bot Download"
+		if thumbPath != "" {
+			thumb := tgbotapi.FilePath(thumbPath)
+			audio.Thumb = thumb
+		}
+		msg = audio
+	} else {
+		video := tgbotapi.NewVideo(chatID, file)
+		video.Caption = fmt.Sprintf("🎬 %s", meta.Title)
+		video.Duration = int(meta.Duration)
+		
+		// Determinar dimensiones aproximadas si es posible, o dejar que Telegram decida
+		video.SupportsStreaming = true
+		
+		if thumbPath != "" {
+			thumb := tgbotapi.FilePath(thumbPath)
+			video.Thumb = thumb
+		}
+		msg = video
+	}
+
+	_, err := b.bot.Send(msg)
+	if err != nil {
+		log.Printf("Error enviando archivo: %v", err)
+		b.sendMessage(chatID, "❌ Ocurrió un error enviando el archivo a Telegram.")
+	}
 }
 
-func (b *DownloadBot) downloadAndSend(chatID int64, url, formatID, formatType string) {
-    // Notificar inicio de descarga
-    statusMsg := b.sendMessage(chatID, "⏬ Descargando...")
+// Utilidades
 
-    // Crear nombre de archivo único
-    filename := fmt.Sprintf("%d_%s_%d", chatID, formatID, time.Now().Unix())
-    outputPath := filepath.Join(b.downloadDir, filename+".%(ext)s")
+func (b *DownloadBot) downloadFile(url, filepath string) error {
+	resp, err := b.httpClient.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-    // Preparar comando yt-dlp
-    var cmd *exec.Cmd
-    if formatType == "audio" {
-        cmd = exec.Command("yt-dlp",
-            "-f", formatID,
-            "-x", // Extraer audio
-            "--audio-format", "mp3",
-            "--audio-quality", "0",
-            "-o", outputPath,
-            "--no-playlist",
-            url,
-        )
-    } else {
-        cmd = exec.Command("yt-dlp",
-            "-f", formatID,
-            "-o", outputPath,
-            "--no-playlist",
-            url,
-        )
-    }
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
 
-    // Ejecutar descarga
-    if err := cmd.Run(); err != nil {
-        b.editMessage(chatID, statusMsg.MessageID, "❌ Error al descargar")
-        return
-    }
-
-    // Buscar archivo descargado
-    downloadedFile, err := b.findDownloadedFile(chatID, formatID)
-    if err != nil {
-        b.editMessage(chatID, statusMsg.MessageID, "❌ Archivo no encontrado")
-        return
-    }
-
-    // Obtener información del archivo
-    fileInfo, _ := os.Stat(downloadedFile)
-    fileSize := fileInfo.Size()
-
-    // Verificar límite de Telegram (50MB)
-    if fileSize > 50*1024*1024 {
-        b.editMessage(chatID, statusMsg.MessageID, "❌ Archivo muy grande (límite: 50MB)")
-        os.Remove(downloadedFile)
-        return
-    }
-
-    // Enviar archivo
-    b.editMessage(chatID, statusMsg.MessageID, "📤 Enviando...")
-    b.sendFileToUser(chatID, downloadedFile, formatType)
-
-    // Limpiar
-    b.deleteMessage(chatID, statusMsg.MessageID)
-    os.Remove(downloadedFile)
-    delete(b.userStates, chatID)
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
 
-func (b *DownloadBot) sendFileToUser(chatID int64, filePath, formatType string) {
-    file, err := os.Open(filePath)
-    if err != nil {
-        b.sendMessage(chatID, "❌ Error al abrir archivo")
-        return
-    }
-    defer file.Close()
-
-    // Extraer nombre del archivo
-    filename := filepath.Base(filePath)
-
-    if formatType == "audio" {
-        // Enviar como audio
-        audio := tgbotapi.NewAudio(chatID, tgbotapi.FilePath(filePath))
-        audio.Title = strings.TrimSuffix(filename, filepath.Ext(filename))
-        _, err = b.bot.Send(audio)
-    } else {
-        // Enviar como video
-        video := tgbotapi.NewVideo(chatID, tgbotapi.FilePath(filePath))
-        _, err = b.bot.Send(video)
-    }
-
-    if err != nil {
-        log.Printf("Error enviando archivo: %v", err)
-        b.sendMessage(chatID, "❌ Error al enviar archivo")
-    }
+func generateProgressBar(percentStr string) string {
+	p, _ := strconv.ParseFloat(percentStr, 64)
+	totalBars := 10
+	filledBars := int(math.Round((p / 100) * float64(totalBars)))
+	
+	bar := strings.Repeat("▓", filledBars) + strings.Repeat("░", totalBars-filledBars)
+	return bar
 }
 
-func (b *DownloadBot) findDownloadedFile(chatID int64, formatID string) (string, error) {
-    pattern := filepath.Join(b.downloadDir, fmt.Sprintf("%d_%s_*", chatID, formatID))
-    files, err := filepath.Glob(pattern)
-    if err != nil || len(files) == 0 {
-        return "", fmt.Errorf("archivo no encontrado")
-    }
-    
-    // Buscar el más reciente
-    var latestFile string
-    var latestTime time.Time
-    
-    for _, file := range files {
-        info, err := os.Stat(file)
-        if err != nil {
-            continue
-        }
-        if info.ModTime().After(latestTime) {
-            latestTime = info.ModTime()
-            latestFile = file
-        }
-    }
-    
-    if latestFile == "" {
-        return "", fmt.Errorf("archivo no encontrado")
-    }
-    
-    return latestFile, nil
+func (b *DownloadBot) sendMessage(chatID int64, text string) tgbotapi.Message {
+	msg := tgbotapi.NewMessage(chatID, text)
+	msg.ParseMode = "Markdown"
+	sent, _ := b.bot.Send(msg)
+	return sent
 }
 
-func (b *DownloadBot) getVideoInfo(url string) (*VideoInfo, error) {
-    cmd := exec.Command("yt-dlp", "-j", "--no-playlist", url)
-    output, err := cmd.Output()
-    if err != nil {
-        return nil, err
-    }
-
-    var info VideoInfo
-    if err := json.Unmarshal(output, &info); err != nil {
-        return nil, err
-    }
-
-    return &info, nil
+func (b *DownloadBot) editMessage(chatID int64, msgID int, text string) {
+	msg := tgbotapi.NewEditMessageText(chatID, msgID, text)
+	msg.ParseMode = "Markdown"
+	b.bot.Send(msg)
 }
 
-func (b *DownloadBot) filterVideoFormats(formats []FormatInfo) []FormatInfo {
-    var videoFormats []FormatInfo
-    
-    for _, format := range formats {
-        // Filtrar formatos que tienen video y audio
-        if format.VideoCodec != "none" && format.AudioCodec != "none" {
-            // Priorizar MP4 y WEBM
-            if format.Ext == "mp4" || format.Ext == "webm" {
-                videoFormats = append(videoFormats, format)
-            }
-        }
-    }
-    
-    return videoFormats
+func (b *DownloadBot) editMessageMarkup(chatID int64, msgID int, text string, markup tgbotapi.InlineKeyboardMarkup) {
+	msg := tgbotapi.NewEditMessageText(chatID, msgID, text)
+	msg.ParseMode = "Markdown"
+	msg.ReplyMarkup = &markup
+	b.bot.Send(msg)
 }
 
-func (b *DownloadBot) filterAudioFormats(formats []FormatInfo) []FormatInfo {
-    var audioFormats []FormatInfo
-    
-    for _, format := range formats {
-        // Filtrar formatos que solo tienen audio
-        if format.VideoCodec == "none" && format.AudioCodec != "none" {
-            audioFormats = append(audioFormats, format)
-        }
-    }
-    
-    return audioFormats
-}
-
-func (b *DownloadBot) isValidURL(url string) bool {
-    // Verificación simple
-    if !strings.HasPrefix(url, "http") {
-        return false
-    }
-    
-    // Verificar con yt-dlp si es soportado
-    cmd := exec.Command("yt-dlp", "--dump-json", "--no-playlist", url)
-    return cmd.Run() == nil
+func (b *DownloadBot) deleteMessage(chatID int64, msgID int) {
+	b.bot.Send(tgbotapi.NewDeleteMessage(chatID, msgID))
 }
 
 func (b *DownloadBot) autoCleaner() {
-    ticker := time.NewTicker(5 * time.Minute)
-    defer ticker.Stop()
-
-    for range ticker.C {
-        files, _ := filepath.Glob(filepath.Join(b.downloadDir, "*"))
-        for _, file := range files {
-            info, err := os.Stat(file)
-            if err != nil {
-                continue
-            }
-            
-            // Eliminar archivos con más de 1 hora
-            if time.Since(info.ModTime()) > time.Hour {
-                os.Remove(file)
-                log.Printf("🧹 Limpiado: %s", file)
-            }
-        }
-    }
+	ticker := time.NewTicker(10 * time.Minute)
+	for range ticker.C {
+		files, _ := filepath.Glob(filepath.Join(DownloadDir, "*"))
+		for _, f := range files {
+			info, err := os.Stat(f)
+			if err == nil && time.Since(info.ModTime()) > 30*time.Minute {
+				os.Remove(f)
+			}
+		}
+	}
 }
 
-// Métodos auxiliares para mensajes
-func (b *DownloadBot) sendMessage(chatID int64, text string) tgbotapi.Message {
-    msg := tgbotapi.NewMessage(chatID, text)
-    sentMsg, _ := b.bot.Send(msg)
-    return sentMsg
-}
-
-func (b *DownloadBot) editMessage(chatID int64, messageID int, text string) {
-    editMsg := tgbotapi.NewEditMessageText(chatID, messageID, text)
-    b.bot.Send(editMsg)
-}
-
-func (b *DownloadBot) deleteMessage(chatID int64, messageID int) {
-    delMsg := tgbotapi.NewDeleteMessage(chatID, messageID)
-    b.bot.Send(delMsg)
+func escapeMarkdown(text string) string {
+	// Simple escape para evitar errores básicos de markdown
+	return strings.NewReplacer("_", "\\_", "*", "\\*", "[", "\\[", "`", "\\`").Replace(text)
 }
