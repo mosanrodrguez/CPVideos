@@ -29,6 +29,15 @@ const (
 	MaxFileSizeBotAPI = 50 * 1024 * 1024 // 50MB (Límite estándar de Telegram Bot API)
 	DownloadDir       = "./temp_downloads"
 	UpdateInterval    = 3 * time.Second // Intervalo para actualizar la barra de progreso
+	
+	// Token del bot - CAMBIA ESTO CON TU TOKEN REAL
+	BotToken = "TU_BOT_TOKEN_AQUI"
+	
+	// URL del webhook - CAMBIA ESTO CON TU URL DE RENDER
+	WebhookURL = "https://tu-app.onrender.com/webhook"
+	
+	// Puerto para el servidor HTTP
+	Port = "8080"
 )
 
 type DownloadBot struct {
@@ -62,22 +71,28 @@ func main() {
 		log.Fatal("❌ 'ffmpeg' no está instalado. Es necesario para procesar videos.")
 	}
 
-	token := os.Getenv("TELEGRAM_BOT_TOKEN")
-	if token == "" {
-		log.Fatal("❌ Configura TELEGRAM_BOT_TOKEN en variables de entorno")
-	}
-
-	bot, err := tgbotapi.NewBotAPI(token)
+	// Crear instancia del bot
+	bot, err := tgbotapi.NewBotAPI(BotToken)
 	if err != nil {
 		log.Panic("❌ Error creando bot:", err)
 	}
 
+	bot.Debug = false
 	log.Printf("🤖 Bot iniciado como: @%s", bot.Self.UserName)
 
+	// Configurar webhook
+	log.Println("🌐 Configurando webhook...")
+	_, err = bot.Request(tgbotapi.NewWebhook(WebhookURL))
+	if err != nil {
+		log.Fatal("❌ Error configurando webhook:", err)
+	}
+
+	// Crear directorio temporal
 	if err := os.MkdirAll(DownloadDir, 0755); err != nil {
 		log.Fatal("❌ Error creando directorio:", err)
 	}
 
+	// Crear instancia del bot de descarga
 	downloadBot := &DownloadBot{
 		bot:        bot,
 		httpClient: &http.Client{Timeout: 30 * time.Second},
@@ -85,10 +100,6 @@ func main() {
 
 	// Limpiador automático en segundo plano
 	go downloadBot.autoCleaner()
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-	updates := bot.GetUpdatesChan(u)
 
 	// Manejo graceful shutdown
 	sigChan := make(chan os.Signal, 1)
@@ -101,10 +112,52 @@ func main() {
 		os.Exit(0)
 	}()
 
-	for update := range updates {
-		// Usamos goroutines para no bloquear el bot con cada mensaje
-		go downloadBot.handleUpdate(update)
+	// Configurar endpoints HTTP
+	http.HandleFunc("/webhook", downloadBot.webhookHandler)
+	http.HandleFunc("/health", downloadBot.healthHandler)
+	
+	// Info endpoint
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status": "online",
+			"bot":    bot.Self.UserName,
+			"time":   time.Now().Format(time.RFC3339),
+		})
+	})
+
+	log.Printf("🚀 Servidor iniciado en puerto %s", Port)
+	log.Printf("📞 Webhook configurado en: %s", WebhookURL)
+	log.Fatal(http.ListenAndServe(":"+Port, nil))
+}
+
+// Handler para webhook de Telegram
+func (b *DownloadBot) webhookHandler(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("⚠️ Pánico en webhook: %v", r)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}()
+
+	update, err := b.bot.HandleUpdate(r)
+	if err != nil {
+		log.Printf("❌ Error procesando update: %v", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
+
+	// Procesar update en goroutine para no bloquear
+	go b.handleUpdate(*update)
+	
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
+}
+
+// Handler para health checks de Render
+func (b *DownloadBot) healthHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("OK"))
 }
 
 func (b *DownloadBot) handleUpdate(update tgbotapi.Update) {
@@ -129,6 +182,8 @@ func (b *DownloadBot) handleMessage(message *tgbotapi.Message) {
 		switch message.Command() {
 		case "start", "help":
 			b.sendMessage(chatID, "🎬 *Video Downloader Pro*\n\nEnvía un enlace de YouTube, TikTok, Instagram, Twitter, etc.\n\nEl bot detectará automáticamente las calidades disponibles.")
+		case "status":
+			b.sendMessage(chatID, "✅ Bot funcionando correctamente\n\nEnvía un enlace para descargar contenido.")
 		}
 		return
 	}
@@ -136,7 +191,7 @@ func (b *DownloadBot) handleMessage(message *tgbotapi.Message) {
 	if strings.HasPrefix(text, "http") {
 		b.processLink(chatID, text)
 	} else {
-		b.sendMessage(chatID, "📥 Por favor, envía un enlace válido.")
+		b.sendMessage(chatID, "📥 Por favor, envía un enlace válido (YouTube, TikTok, Instagram, etc.).")
 	}
 }
 
