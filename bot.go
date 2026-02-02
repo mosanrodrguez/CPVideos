@@ -31,10 +31,10 @@ const (
 	UpdateInterval    = 3 * time.Second // Intervalo para actualizar la barra de progreso
 	
 	// Token del bot - CAMBIA ESTO CON TU TOKEN REAL
-	BotToken = "TU_BOT_TOKEN_AQUI"
+	BotToken = "8260660352:AAFPSK2-GXqGoBm2b3K988B_dadPXHduc5M"
 	
 	// URL del webhook - CAMBIA ESTO CON TU URL DE RENDER
-	WebhookURL = "https://tu-app.onrender.com/webhook"
+	WebhookURL = "https://tgbotvd.onrender.com/webhook"
 	
 	// Puerto para el servidor HTTP
 	Port = "8080"
